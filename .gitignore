@@ -13,3 +13,4 @@ tests/.coverage
 build/
 tests/report/
 *.sqlite3
+.vscode/
