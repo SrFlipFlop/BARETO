@@ -3,17 +3,28 @@ from __future__ import unicode_literals
 
 from django.db import models
 
-class Projects(models.Model):
-    project_name = models.CharField(max_length=250)
-    project_status = models.CharField(max_length=250)
-    project_start = models.DateTimeField()
-    project_finished = models.DateField()
-    project_notes = models.TextField()
+class Project(models.Model):
+    name = models.CharField(max_length=250)
+    status = models.CharField(max_length=250)
+    start = models.DateTimeField()
+    finished = models.DateField()
+    notes = models.TextField()
 
-class Assets(models.Model):
-    asset_name = models.CharField(max_length=250)
-    asset_notes = models.TextField()
-    asset_project = models.ForeignKey(Projects, on_delete=models.CASCADE)
+class Asset(models.Model):
+    name = models.CharField(max_length=250)
+    notes = models.TextField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
-class Vulnerabilities(models.Model):
-    vuln_name = models.CharField(max_length=250)
+class Vulnerability(models.Model):
+    name = models.CharField(max_length=250)
+    risk = models.CharField(max_length=250)
+    cvss = models.CharField(max_length=250)
+    category = models.CharField(max_length=250)
+    status = models.CharField(max_length=250)
+    description = models.TextField()
+    impact = models.TextField()
+    recomendation = models.TextField()
+
+class AssetVulnerability(models.Model):
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    vulnerability = models.ForeignKey(Vulnerability)
