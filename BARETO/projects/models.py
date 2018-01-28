@@ -2,18 +2,17 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from tinymce.models import HTMLField
 
 class Project(models.Model):
     name = models.CharField(max_length=250)
     status = models.CharField(max_length=250)
-    start = models.DateTimeField()
-    finished = models.DateField()
-    notes = models.TextField()
+    start = models.DateTimeField(auto_now_add=True, blank=True)
+    finished = models.DateTimeField(auto_now_add=True, blank=True)
+    notes = HTMLField()
 
-class Asset(models.Model):
-    name = models.CharField(max_length=250)
-    notes = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    def __unicode__(self):
+        return self.name
 
 class Vulnerability(models.Model):
     name = models.CharField(max_length=250)
@@ -21,9 +20,22 @@ class Vulnerability(models.Model):
     cvss = models.CharField(max_length=250)
     category = models.CharField(max_length=250)
     status = models.CharField(max_length=250)
-    description = models.TextField()
-    impact = models.TextField()
-    recomendation = models.TextField()
+    description = HTMLField()
+    impact = HTMLField()
+    recomendation = HTMLField()
+
+    def __unicode__(self):
+        return self.name
+
+class Asset(models.Model):
+    name = models.CharField(max_length=250)
+    notes = HTMLField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    vulnerabilities = models.ManyToManyField(Vulnerability, through='AssetVulnerability')
+    #vulnerabilities = models.ManyToManyField(Vulnerability) 
+
+    def __unicode__(self):
+        return self.name
 
 class AssetVulnerability(models.Model):
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
