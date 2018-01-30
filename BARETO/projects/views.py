@@ -1,13 +1,16 @@
 from __future__ import unicode_literals
+
 from rest_framework import viewsets
+
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.generic import TemplateView
 
-from models import *
-from serializers import *
+from projects.models import *
+from projects.serializers import *
 
-def index(request):
-    return render(request, 'projects/index.html', {})
+class ProjectsView(TemplateView):
+    template_name = "projects.html"
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()

@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
-import views
+from projects.views import *
 
 urlpatterns = [
-    url(r'', views.index),
+    url(r'^$', ProjectsView.as_view(), name='projects'),
 ]
