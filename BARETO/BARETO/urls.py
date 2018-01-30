@@ -9,9 +9,9 @@ router.register(r'projects', ProjectViewSet)
 router.register(r'assets', AssetViewSet)
 router.register(r'vulnerabilities', VulnerabilityViewSet)
 
-urlpatterns = [
-    url(r'^projects/', include('projects.urls')),
+urlpatterns = [    
     url(r'^api/', include(router.urls)),
-    url(r'^tinymce/', include('tinymce.urls')),
     #url(r'^admin/', admin.site.urls),
+    #url(r'^tinymce/', include('tinymce.urls')),
+    url(r'^', include('projects.urls')),
 ]
