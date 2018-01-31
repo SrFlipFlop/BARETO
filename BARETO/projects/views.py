@@ -4,12 +4,13 @@ from rest_framework import viewsets
 
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.views.generic import ListView, TemplateView
 
 from projects.models import *
 from projects.serializers import *
 
-class ProjectsView(TemplateView):
+class ProjectsView(ListView):
+    model = Project
     template_name = "projects.html"
 
 class ProjectViewSet(viewsets.ModelViewSet):
