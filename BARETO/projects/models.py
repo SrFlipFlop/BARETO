@@ -4,9 +4,15 @@ from __future__ import unicode_literals
 from django.db import models
 from tinymce.models import HTMLField
 
+PROJECT_STATUS = (
+    ('C', 'On course'),
+    ('P', 'Paused'),
+    ('F', 'Finished'),
+)
+
 class Project(models.Model):
     name = models.CharField(max_length=250)
-    status = models.CharField(max_length=250)
+    status = models.CharField(max_length=1, choices=PROJECT_STATUS)
     start = models.DateTimeField(auto_now_add=True, blank=True)
     finished = models.DateTimeField(auto_now_add=True, blank=True)
     notes = HTMLField()
