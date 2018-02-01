@@ -13,6 +13,9 @@ class ProjectsView(ListView):
     model = Project
     template_name = "projects.html"
 
+class ProjectView(TemplateView):
+	template_name = "project.html"
+
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
