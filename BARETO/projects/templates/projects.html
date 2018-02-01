@@ -1,19 +1,11 @@
 {% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{% block title %}Welcome Home {% endblock %}</title>
-</head>
-<body>
-  {% block pagecontent %}
-    <ul>
-      {% for publisher in object_list %}
-        <li>{{ publisher.name }}</li>
-      {% endfor %}
-   </ul>
-    <a href="{% url 'projects' %}">Go Home</a>
-  {% endblock %}
-</body>
-</html>
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<ul>
+  {% for publisher in object_list %}
+    <li>{{ publisher.name }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
