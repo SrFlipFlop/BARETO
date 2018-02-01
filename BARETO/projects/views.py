@@ -8,6 +8,12 @@ from projects.serializers import *
 
 def projects(request):
     projects = Project.objects.all()
+    for project in projects:
+        assets = Asset.objects.find(project=project.id)
+        for asset in assets:
+
+            num_vulns = asset.vulnerabilities
+
     return render(request, "projects.html", {'projects' : projects})
 
 def project(request, project):
