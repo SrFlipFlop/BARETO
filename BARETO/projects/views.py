@@ -1,21 +1,19 @@
 from __future__ import unicode_literals
 
 from rest_framework import viewsets
-
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.views.generic import ListView, TemplateView
 
 from projects.models import *
 from projects.serializers import *
 
-class ProjectsView(ListView):
-    model = Project
-    template_name = "projects.html"
+def projects(request):
+    projects = Project.objects.all()
+    return render(request, "projects.html", {'projects' : projects})
 
-class ProjectView(TemplateView):
-	template_name = "project.html"
+def project(request, project):
+    return render(request, "project.html", {'id':project})
 
+# === API views
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
