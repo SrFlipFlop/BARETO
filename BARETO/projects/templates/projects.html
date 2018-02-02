@@ -3,9 +3,10 @@
 {% block title %}Projects{% endblock %}
 
 {% block content %}
-<table style="width: 100%;" aria-describedby="dataTables-example_info" role="grid" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" id="dataTables-example" width="100%">
+<table>
 	<thead>
-		<tr role="row">
+		<tr>
+			<th>ID</th>
 			<th>Name</th>
 			<th>Status</th>
 			<th>Risk</th>
@@ -13,13 +14,13 @@
 		</tr>
 	</thead>
 	<tbody>
-		{% for project in object_list %}
-	 	<tr role="row">
-	        <td>{{ project.name }}</td>
-	        <td>Firefox 1.0</td>
-	        <td>Win 98+ / OSX.2+</td>
-	        <td>1.7</td>
-	        <td>A</td>
+		{% for project in projects %}
+	 	<tr>
+			<td><a href="{% url 'project' project.id %}" >{{ project.id }}</a></td>
+	        <td><a href="{% url 'project' project.id %}" >{{ project.name }}</a></td>
+	        <td>1</td>
+	        <td>2</td>
+	        <td>3</td>
 	    </tr>
 	    {% endfor %}
 	</tbody>
@@ -29,9 +30,6 @@
 {% block js %}
 <script>
 $(document).ready(function() {
-    $('#projects-table').DataTable({
-        responsive: true
-    });
 });
 </script>
 {% endblock %}
