@@ -5,27 +5,41 @@ from django.db import models
 from tinymce.models import HTMLField
 
 PROJECT_STATUS = (
-    ('C', 'On course'),
-    ('P', 'Paused'),
-    ('F', 'Finished'),
+    ('On course', 'On course'),
+    ('Paused', 'Paused'),
+    ('Finished', 'Finished'),
+)
+
+VULNERABILITY_STATUS = (
+    ('Draft', 'Draft'),
+    ('Ready', 'Ready'),
+    ('Finished', 'Finished'),
+)
+
+VULNERABILITY_RISK = (
+    ('Critical', 'Critical'),
+    ('High', 'High'),
+    ('Medium', 'Medium'),
+    ('Low', 'Low'),
+    ('Informative', 'Informative')
 )
 
 class Project(models.Model):
     name = models.CharField(max_length=250)
-    status = models.CharField(max_length=1, choices=PROJECT_STATUS)
+    status = models.CharField(max_length=50, choices=PROJECT_STATUS)
     start = models.DateTimeField(auto_now_add=True, blank=True)
     finished = models.DateTimeField(auto_now_add=True, blank=True)
-    notes = HTMLField()
+    notes = HTMLField(default='TBC')
 
     def __unicode__(self):
         return self.name
 
 class Vulnerability(models.Model):
     name = models.CharField(max_length=250)
-    risk = models.CharField(max_length=250)
+    risk = models.CharField(max_length=1, choices=VULNERABILITY_RISK)
     cvss = models.CharField(max_length=250)
     category = models.CharField(max_length=250)
-    status = models.CharField(max_length=250)
+    status = models.CharField(max_length=1, choices=VULNERABILITY_STATUS)
     description = HTMLField()
     impact = HTMLField()
     recomendation = HTMLField()
@@ -38,7 +52,6 @@ class Asset(models.Model):
     notes = HTMLField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     vulnerabilities = models.ManyToManyField(Vulnerability, through='AssetVulnerability')
-    #vulnerabilities = models.ManyToManyField(Vulnerability) 
 
     def __unicode__(self):
         return self.name
