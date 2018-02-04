@@ -7,14 +7,21 @@ from projects.models import *
 from projects.serializers import *
 
 def projects(request):
-    projects = Project.objects.all()
-    for project in projects:
-        assets = Asset.objects.find(project=project.id)
-        for asset in assets:
-
-            num_vulns = asset.vulnerabilities
+    projects = {}
+    for project in Project.objects.all():        
+        for asset in Asset.objects.filter(project=project.id):
+            vulns = {}
+            for vuln in asset.vulnerabilities.all():
+                vulns.update({vuln.id : vuln})
+            
+            projects.update({project.id: {'info': project, 'risk': max_risk(vulns), 'issues': len(vulns)}})
 
     return render(request, "projects.html", {'projects' : projects})
+
+def max_risk(vulns):
+    risks = ('Informative', 'Low', 'Medium', 'High', 'Critical')
+    index = max([risks.index(v.risk) for k, v in vulns.iteritems()])
+    return risks[index]
 
 def project(request, project):
     return render(request, "project.html", {'id':project})
