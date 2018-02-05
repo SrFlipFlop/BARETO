@@ -14,8 +14,8 @@ class VulnerabilitySerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'name', 'risk', 'cvss', 'category', 'status', 'description', 'impact', 'recomendation') 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
-    #vulnerabilities = VulnerabilitySerializer(many=True, read_only=True)
-    vulnerabilities = VulnerabilitySerializer(many=True)
+    vulnerabilities = VulnerabilitySerializer(many=True, read_only=True)
+    #vulnerabilities = VulnerabilitySerializer(many=True)
 
     class Meta:
         model = Asset

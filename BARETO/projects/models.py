@@ -36,20 +36,20 @@ class Project(models.Model):
 
 class Vulnerability(models.Model):
     name = models.CharField(max_length=250)
-    risk = models.CharField(max_length=1, choices=VULNERABILITY_RISK)
+    risk = models.CharField(max_length=50, choices=VULNERABILITY_RISK)
     cvss = models.CharField(max_length=250)
     category = models.CharField(max_length=250)
-    status = models.CharField(max_length=1, choices=VULNERABILITY_STATUS)
-    description = HTMLField()
-    impact = HTMLField()
-    recomendation = HTMLField()
+    status = models.CharField(max_length=50, choices=VULNERABILITY_STATUS)
+    description = HTMLField(default='TBC')
+    impact = HTMLField(default='TBC')
+    recomendation = HTMLField(default='TBC')
 
     def __unicode__(self):
         return self.name
 
 class Asset(models.Model):
     name = models.CharField(max_length=250)
-    notes = HTMLField()
+    notes = HTMLField(default='TBC')
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     vulnerabilities = models.ManyToManyField(Vulnerability, through='AssetVulnerability')
 

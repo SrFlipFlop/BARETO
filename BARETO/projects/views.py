@@ -24,7 +24,12 @@ def max_risk(vulns):
     return risks[index]
 
 def project(request, project):
-    return render(request, "project.html", {'id':project})
+    context = {
+        'project': Project.objects.get(id=project),
+        'assets': Asset.objects.filter(project=project),
+    }
+
+    return render(request, "project.html", context)
 
 # === API views
 class ProjectViewSet(viewsets.ModelViewSet):
