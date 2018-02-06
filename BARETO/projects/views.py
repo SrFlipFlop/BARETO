@@ -24,11 +24,17 @@ def max_risk(vulns):
     return risks[index]
 
 def project(request, project):
+    assets = Asset.objects.filter(project=project)
+    vulns = []
+    for asset in assets:
+        for vuln in asset.vulnerabilities.all():
+            vulns.append(vuln)
+
     context = {
         'project': Project.objects.get(id=project),
-        'assets': Asset.objects.filter(project=project),
+        'assets': assets,
+        'vulnerabilities': vulns,
     }
-
     return render(request, "project.html", context)
 
 # === API views
