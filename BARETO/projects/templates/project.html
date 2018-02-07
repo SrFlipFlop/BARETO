@@ -79,43 +79,63 @@
         </table>
     </div>
 
-    <!-- CREATE ASSET MODAL -->
     <div class="modal fade" id="create-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            <form method="POST">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="myModalLabel">New asset</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Asset name:</label>
+                            <input class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Asset notes:</label>
+                            <input class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-primary" formaction="{% url 'asset_add' project.id %}">Add</button>                        
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </div>
-                <div class="modal-footer">                    
-                    <button type="button" class="btn btn-primary">Modify</button>
-                    <button type="button" class="btn btn-danger">Delete</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
+                {% csrf_token %}
+            </form>
         </div>
     </div>
 
-    <!-- MODIFY ASSET MODAL -->
     <div class="modal fade" id="mod-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            <form method="POST">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="myModalLabel">Modify asset</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label>Asset name:</label>
+                                <input class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Asset notes:</label>
+                                <input class="form-control">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-primary" formaction="{% url 'asset_mod' project.id %}">Modify</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </div>
-                <div class="modal-footer">                    
-                    <button type="button" class="btn btn-primary">Modify</button>
-                    <button type="button" class="btn btn-danger">Delete</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
+                {% csrf_token %}
+            </form>
         </div>
     </div>
 </div>
@@ -125,6 +145,10 @@
 <script>
 $(document).ready(function() {
 	$('#assets-table').DataTable({
+        responsive: true
+    });
+
+    $('#vulns-table').DataTable({
         responsive: true
     });
     

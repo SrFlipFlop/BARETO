@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from rest_framework import viewsets
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from projects.models import *
 from projects.serializers import *
@@ -23,7 +23,20 @@ def max_risk(vulns):
     index = max([risks.index(v.risk) for k, v in vulns.iteritems()])
     return risks[index]
 
-def project(request, project):
+def project_info(request, project):
+    context = {
+        'project': Project.objects.get(id=project)
+    }
+    return render(request, "project_info.html", context)
+
+def project_asset(request, project):
+    context = {
+        'project': Project.objects.get(id=project),
+        'assets' : Asset.objects.filter(project=project)
+    }
+    return render(request, "project_asset.html", context)
+
+def project_vuln(request, project):
     assets = Asset.objects.filter(project=project)
     vulns = []
     for asset in assets:
@@ -35,7 +48,25 @@ def project(request, project):
         'assets': assets,
         'vulnerabilities': vulns,
     }
-    return render(request, "project.html", context)
+    return render(request, "project_vuln.html", context)
+
+def asset_add(request, project):
+    return redirect('/project/{0}/'.format(project))
+
+def asset_mod(request, project):
+    return redirect('/project/{0}/'.format(project))
+
+def asset_del(request, project):
+    return redirect('/project/{0}/'.format(project))
+
+def vuln_add(request, project):
+    return redirect('/project/{0}/'.format(project))
+
+def vuln_mod(request, project):
+    return redirect('/project/{0}/'.format(project))
+
+def vuln_del(request, project):
+    return redirect('/project/{0}/'.format(project))
 
 # === API views
 class ProjectViewSet(viewsets.ModelViewSet):
