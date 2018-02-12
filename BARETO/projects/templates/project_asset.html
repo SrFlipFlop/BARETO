@@ -59,11 +59,10 @@
                     </div>
                     <div class="form-group">
                         <label>Asset notes:</label>
-                        <input class="form-control">
+                        <textarea class="form-control" name="content" id="create-editor"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger">Delete</button>
                     <button type="submit" class="btn btn-primary" formaction="{% url 'asset_add' project.id %}">Add</button>                        
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
@@ -90,7 +89,7 @@
                         </div>
                         <div class="form-group">
                             <label>Asset notes:</label>
-                            <input class="form-control">
+                            <textarea class="form-control" name="content" id="mod-editor"></textarea>
                         </div>
                     </form>
                 </div>
@@ -121,5 +120,29 @@ $(document).ready(function() {
         $('#create-asset').modal("show");
     });
 });
+
+var createAssetEditor = ClassicEditor
+    .create(document.querySelector('#create-editor'), {
+        toolbar: ['headings', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo'],
+        heading: {
+            options: [
+                { modelElement: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                { modelElement: 'heading1', viewElement: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                { modelElement: 'heading2', viewElement: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' }
+            ]
+        },
+        image: {
+            toolbar: [ 'imageTextAlternative', '|', 'imageStyleAlignLeft', 'imageStyleFull', 'imageStyleAlignRight' ],
+            styles: [
+                'imageStyleFull',
+                'imageStyleAlignLeft',
+                'imageStyleAlignRight'
+            ]
+        }
+    })
+    .catch( error => {
+        console.log( error );
+    });
+var createAssetEditor = ClassicEditor.create(document.querySelector('#mod-editor')).catch( error => {console.error( error );});
 </script>
 {% endblock %}
