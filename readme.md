@@ -1,6 +1,7 @@
 ## Basic Reporting Tool (BARETO)
+...
 
-## Setup
+### Setup
 * Install required packets (**sudo apt-get install libpq-dev postgresql postgresql-contrib**).
 * Enter to postgres user (**su postgres**).
 * Start a postgres session (**psql**).
@@ -12,3 +13,11 @@
 * Add privileges to the new user (**GRANT ALL PRIVILEGES ON DATABASE bareto TO baretouser;**).
 * Exit form the postgres session (**\q**).
 * Exit from the postgres user(**exit**).
+
+### TODO
+* Basic create / modify /delete assets
+* Basic create / modify /delete vulnerabilities
+* Add HTML editor in assets and vulnerabilities
+* Upload images in the HTML editor field
+* Python bindings to interact with the API
+* Example scripts with the bidings (Nessus, CSV, docx, ...)
