@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Project - {{ project.name }}{% endblock %}
+
+{% block menu %}
+<li>
+    <a><i class="fa fa-folder-open fa-fw"></i> Project {{ project.id }}</a>
+    <ul class="nav nav-second-level collapse">
+        <li>
+            <a href="{% url 'project_info' project.id %}"><i class="fa fa-bar-chart-o fa-fw"></i> Information</a> 
+        </li>
+        <li>
+            <a class="active" href="{% url 'project_asset' project.id %}"><i class="fa fa-sitemap fa-fw"></i> Assets</a> 
+        </li>
+        <li>
+            <a href="{% url 'project_vuln' project.id %}"><i class="fa fa-file-text-o fa-fw"></i> Vulnerabilities</a>
+        </li>
+    </ul>
+</li>
+{% endblock %}
+
+{% block content %}
+<button type="button" id="create-asset-button" class="btn btn-default">Create asset</button>
+<br><br>
+<table id="assets-table" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" role="grid" aria-describedby="dataTables-example_info" style="width: 100%;" width="100%">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Vulnerabilities</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for asset in assets %}
+            <tr>
+            <td>{{ asset.id }}</td>
+            <td>{{ asset.name }}</td>
+            <td>{{ asset.vulnerabilities.count }}</td>
+            <td>{{ asset.notes }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- CREATE ASSET MODAL -->
+<div class="modal fade" id="create-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <form method="POST">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabel">New asset</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Asset name:</label>
+                        <input class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Asset notes:</label>
+                        <textarea class="form-control" name="content" id="create-editor"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" formaction="{% url 'asset_add' project.id %}">Add</button>                        
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+
+<!-- MODIFY ASSET MODAL -->
+<div class="modal fade" id="mod-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <form method="POST">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabel">Modify asset</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label>Asset name:</label>
+                            <input class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Asset notes:</label>
+                            <textarea class="form-control" name="content" id="mod-editor"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger">Delete</button>
+                    <button type="submit" class="btn btn-primary" formaction="{% url 'asset_mod' project.id %}">Modify</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    $('#assets-table').DataTable({
+        responsive: true
+    });
+    
+    $('#assets-table').on('click', 'tr', function () {
+        $('#mod-asset').modal("show");
+    });
+
+    $('#create-asset-button').on('click', function () {
+        $('#create-asset').modal("show");
+    });
+});
+
+var createAssetEditor = ClassicEditor
+    .create(document.querySelector('#create-editor'), {
+        toolbar: ['headings', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo'],
+        heading: {
+            options: [
+                { modelElement: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                { modelElement: 'heading1', viewElement: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                { modelElement: 'heading2', viewElement: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' }
+            ]
+        },
+        image: {
+            toolbar: [ 'imageTextAlternative', '|', 'imageStyleAlignLeft', 'imageStyleFull', 'imageStyleAlignRight' ],
+            styles: [
+                'imageStyleFull',
+                'imageStyleAlignLeft',
+                'imageStyleAlignRight'
+            ]
+        }
+    })
+    .catch( error => {
+        console.log( error );
+    });
+var createAssetEditor = ClassicEditor.create(document.querySelector('#mod-editor')).catch( error => {console.error( error );});
+</script>
+{% endblock %}
