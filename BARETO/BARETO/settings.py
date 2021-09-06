@@ -1,14 +1,16 @@
-import os
+from os import environ
+from os.path import dirname, abspath, join
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = dirname(dirname(abspath(__file__)))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+ad21qlb1)z#-&9of=@=5(cb&csf2&rhniu9f(iu(_w-$6cmui'
+SECRET_KEY = environ.get('DJANGO_SECREY_KEY', '7h1515n07453cr37k3y')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(environ.get('DJANGO_DEBUG', 1))
 
-ALLOWED_HOSTS = []
+hosts = environ.get('DJANGO_ALLOWED_HOSTS', [])
+if type(hosts) is not list:
+    hosts = hosts.split(' ')
+ALLOWED_HOSTS = hosts
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,8 +19,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'projects.apps.ProjectsConfig',
+    'app.apps.ApplicationConfig',
     'rest_framework',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
@@ -53,17 +56,13 @@ WSGI_APPLICATION = 'BARETO.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'bareto',
-        'USER': 'baretouser',
-        'PASSWORD': os.environ.get("BARETO_PASSWORD", ''), #export BARETO_PASSWORD='ThisIsNotMyPassword!'
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-    #'default': {
-    #    'ENGINE': 'django.db.backends.sqlite3',
-    #    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    #}
+        'ENGINE': environ.get('SQL_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': environ.get('SQL_DATABASE', join(BASE_DIR, 'db.sqlite3')),
+        'USER': environ.get('SQL_USER', 'user'),
+        'PASSWORD': environ.get('SQL_PASSWORD', 'password'),
+        'HOST': environ.get('SQL_HOST', 'localhost'),
+        'PORT': environ.get('SQL_PORT', '5432'),
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -94,7 +93,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+   join(BASE_DIR, 'static'),
 )
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = join(BASE_DIR, 'staticfiles')
