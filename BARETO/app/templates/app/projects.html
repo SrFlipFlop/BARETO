@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'app/base.html' %}
 
 {% block title %}Projects{% endblock %}
 
@@ -25,6 +25,7 @@
 	    {% endfor %}
 	</tbody>
 </table>
+<a class="btn btn-outline-primary" href="{% url 'project_add' %}" role="button">Add project</a>
 {% endblock %}
 
 {% block js %}
