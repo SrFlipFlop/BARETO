@@ -11,6 +11,9 @@
         <link rel="stylesheet" type="text/css" href="{% static 'app/plugins/fontawesome-free/css/all.min.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'app/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
         <link rel="stylesheet" type="text/css" href="{% static 'app/dist/css/adminlte.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'app/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'app/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'app/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}"> 
     </head>
 
     <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
@@ -72,13 +75,13 @@
                     <nav class="mt-2">
                         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                             <li class="nav-item">
-                                <a href="/" class="nav-link">
+                                <a href="{% url 'dashboard'%}" class="nav-link">
                                     <i class="nav-icon fas fa-chart-pie"></i>
                                     <p>Dashboard</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/" class="nav-link">
+                                <a href="{% url 'projects'%}" class="nav-link">
                                     <i class="nav-icon fas fa-list"></i>
                                     <p>Projects</p>
                                 </a>
@@ -146,7 +149,14 @@
             </footer>
         </div>
         
-        <script src="{% static 'app/plugins/jquery/jquery.min.js' %}"></script>
+        <script src="{% static 'app/plugins/jquery/jquery.min.js'%}"></script>
+        <script src="{% static 'app/plugins/jquery-ui/jquery-ui.min.js'%}"></script>
+
+        
+        <script src="{% static 'app/plugins/moment/moment.min.js' %}"></script>
+        <script src="{% static 'app/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+
+        <script src="{% static 'app/plugins/datatables/jquery.dataTables.min.js'%}"></script>
         <script src="{% static 'app/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
         <script src="{% static 'app/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
         <script src="{% static 'app/dist/js/adminlte.js' %}"></script>
@@ -155,8 +165,13 @@
         <script src="{% static 'app/plugins/jquery-mapael/jquery.mapael.min.js' %}"></script>
         <script src="{% static 'app/plugins/jquery-mapael/maps/usa_states.min.js' %}"></script>
         <script src="{% static 'app/plugins/chart.js/Chart.min.js' %}"></script>        
-        <script src="{% static 'app/dist/js/demo.js' %}"></script>
+        
         <script src="{% static 'app/dist/js/pages/dashboard2.js' %}"></script>
+        <script src="{% static 'app/plugins/tinymce/tinymce.min.js' %}"></script>
+        
+
+        <script src="{% static 'app/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js' %}"></script>
+
         {% block js %}{% endblock %}
     </body>
 </html>
