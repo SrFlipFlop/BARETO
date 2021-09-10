@@ -1,0 +1,161 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Clients{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Clients</h3>
+    </div>
+
+    <div class="card-body">
+        <table id="clients-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Projects</th>
+                    <th>Users</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr>
+                    {% if user.is_superuser %}
+                    <td><a href="{% url 'clients_mod_group' group=client.id %}">{{client.name}}</a></td>
+                    {% else %}
+                    <td>{{client.name}}</td>
+                    {% endif %}
+                    <td>{{client.projects}}</td>
+                    <td>{{client.users}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addClient">Add client</button>
+    </div>
+</div>
+
+<div class="modal fade" id="addClient" tabindex="-1" role="dialog" aria-labelledby="addClientLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <form method="POST" action="{% url 'clients_add_group' %}">
+            <div class="modal-header">
+				<h5 class="modal-title" id="addClientLabel">New client</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+			<div class="modal-body">
+                    {% csrf_token %}
+					<div class="form-group">
+						<label for="recipient-name" class="col-form-label">Name:</label>
+						<input type="text" class="form-control" name="clientName">
+					</div>
+			</div>
+
+			<div class="modal-footer">
+				<button id="closeClearClient" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
+				<button type="submit" class="btn btn-primary">Create client</button>
+			</div>
+            </form>
+		</div>
+	</div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Users</h3>
+    </div>
+
+    <div class="card-body">
+        <table id="users-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Clients</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for element in users %}
+                <tr>
+                    {% if user.is_superuser %}
+                    <td><a href="{% url 'clients_mod_user' user=user.id %}">{{element.name}}</a></td>
+                    {% else %}
+                    <td>{{element.name}}</td>
+                    {% endif %}
+                    <td>{{element.clients}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addUser">Add user</button>
+    </div>
+</div>
+
+<div class="modal fade" id="addUser" tabindex="-1" role="dialog" aria-labelledby="addUserLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <form method="POST" action="{% url 'clients_add_user' %}">
+            <div class="modal-header">
+				<h5 class="modal-title" id="addUserLabel">New user</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+			<div class="modal-body">
+                    {% csrf_token %}
+					<div class="form-group">
+						<label for="recipient-name" class="col-form-label">Name:</label>
+						{{form.username}}
+					</div>
+                    <div class="form-group">
+						<label for="recipient-name" class="col-form-label">Password:</label>
+						{{form.password1}}
+					</div>
+                    <div class="form-group">
+						<label for="recipient-name" class="col-form-label">Confirm password:</label>
+						{{form.password2}}
+					</div>
+                    <div class="form-group">
+						<label for="recipient-name" class="col-form-label">Clients:</label>
+						{{form.groups}}
+					</div>
+			</div>
+
+			<div class="modal-footer">
+				<button id="closeClearUser" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
+				<button type="submit" class="btn btn-primary">Create user</button>
+			</div>
+            </form>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function(){
+    $('#clients-table').DataTable();
+    $('#users-table').DataTable({
+        "autoWidth": true,
+    });
+
+    $('#closeClearClient').click(function() {
+		$('#addClient').find("input,select").val('').end();
+	});
+    $('#closeClearUser').click(function() {
+		$('#addUser').find("input,select").val('').end();
+	});
+
+
+});
+</script>
+{% endblock %}

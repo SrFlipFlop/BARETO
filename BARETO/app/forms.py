@@ -1,5 +1,10 @@
 from django import forms
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+
 from datetime import date, timedelta
+
+from django.forms import widgets
 from tinymce.widgets import TinyMCE
 
 from app.models import *
@@ -28,3 +33,34 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = '__all__'
+
+class UserClientCreateForm(UserCreationForm):
+    groups = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Group.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class':'custom-select'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'password1', 'password2', 'groups']
+    
+    def __init__(self, *args, **kwargs):
+        super(UserClientCreateForm, self).__init__(*args, **kwargs)
+        for element in ['username', 'password1', 'password2']:
+            self.fields[element].widget.attrs.update({'class':'form-control'})
+
+class UserClientUpdateForm(UserChangeForm):
+    groups = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Group.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class':'custom-select'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'groups']
+    
+    def __init__(self, *args, **kwargs):
+        super(UserClientUpdateForm, self).__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class':'form-control'})

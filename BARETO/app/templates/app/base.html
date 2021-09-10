@@ -105,7 +105,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/" class="nav-link">
+                                <a href="{% url 'clients'%}" class="nav-link">
                                     <i class="nav-icon fas fa-users"></i>
                                     <p>Clients</p>
                                 </a>
@@ -151,11 +151,8 @@
         
         <script src="{% static 'app/plugins/jquery/jquery.min.js'%}"></script>
         <script src="{% static 'app/plugins/jquery-ui/jquery-ui.min.js'%}"></script>
-
-        
         <script src="{% static 'app/plugins/moment/moment.min.js' %}"></script>
         <script src="{% static 'app/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
-
         <script src="{% static 'app/plugins/datatables/jquery.dataTables.min.js'%}"></script>
         <script src="{% static 'app/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
         <script src="{% static 'app/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
@@ -165,11 +162,8 @@
         <script src="{% static 'app/plugins/jquery-mapael/jquery.mapael.min.js' %}"></script>
         <script src="{% static 'app/plugins/jquery-mapael/maps/usa_states.min.js' %}"></script>
         <script src="{% static 'app/plugins/chart.js/Chart.min.js' %}"></script>        
-        
         <script src="{% static 'app/dist/js/pages/dashboard2.js' %}"></script>
         <script src="{% static 'app/plugins/tinymce/tinymce.min.js' %}"></script>
-        
-
         <script src="{% static 'app/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js' %}"></script>
 
         {% block js %}{% endblock %}

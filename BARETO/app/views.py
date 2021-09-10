@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 from rest_framework import viewsets
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.models import User, Group
 
 from app.models import *
 from app.serializers import *
@@ -17,6 +18,80 @@ def max_risk(vulns):
     risks = ('Informative', 'Low', 'Medium', 'High', 'Critical')
     index = max([risks.index(v.risk) for k, v in vulns.iteritems()])
     return risks[index]
+
+# CLIENTS
+def clients(request):
+    users = []
+    for user in User.objects.all():
+        users.append({
+            'id': user.pk,
+            'name': user.username,
+            'clients': ', '.join([g.name for g in user.groups.all()]),
+        })
+    
+    clients = []
+    for group in Group.objects.all():
+        clients.append({
+            'id': group.pk,
+            'name': group.name,
+            'projects': Project.objects.filter(client__name=group.name).count(),
+            'users': User.objects.filter(groups__name=group.name).count(),
+        })
+    return render(request, "app/clients.html", {'users': users, 'clients': clients, 'form': UserClientCreateForm})
+
+def clients_add_group(request):
+    if request.method == 'POST':
+        new_group, created = Group.objects.get_or_create(name=request.POST.get('clientName', 'Default'))
+    return redirect('clients')
+
+def clients_mod_group(request, group):
+    if request.user.is_superuser:
+        instance = get_object_or_404(Group, pk=group)
+        if request.method == 'GET':
+            return render(request, "app/client_mod.html", {'current': instance})
+        else:
+            new_name = request.POST.get('clientName')
+            if not Group.objects.filter(name=new_name):
+                instance.name = new_name
+                instance.save()
+
+    return redirect('clients')
+
+def clients_del_group(request, group):
+    if request.user.is_superuser:
+        group = get_object_or_404(Group, pk=group)
+        group.delete()
+    return redirect('clients')
+
+def clients_add_user(request):
+    if request.method == 'POST':
+        form = UserClientCreateForm(request.POST)
+        if form.is_valid():
+            new_user = User.objects.create_user(form.cleaned_data['username'], password=form.cleaned_data['password1'])
+            for group in form.cleaned_data['groups']:
+                new_user.groups.add(group)
+            new_user.save()
+
+    return redirect('clients')
+
+def clients_mod_user(request, user):
+    if request.user.is_superuser:
+        user = get_object_or_404(User, pk=user)
+        form = UserClientUpdateForm(request.POST or None, instance=user)
+        if not form.is_valid():
+            return render(request, "app/user_mod.html", {'current': user, 'form': form})
+        
+        user = form.save()
+        for group in form.cleaned_data.get('groups'):
+            user.groups.add(group)
+        user.save()
+    return redirect('clients')
+
+def clients_del_user(request, user):
+    if request.user.is_superuser:
+        user = get_object_or_404(User, pk=user)
+        user.delete()
+    return redirect('clients')
 
 # PROJECTS
 def projects(request):

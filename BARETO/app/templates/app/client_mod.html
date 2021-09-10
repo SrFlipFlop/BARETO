@@ -1,0 +1,27 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Client - {{current.name}}{% endblock %}
+
+{% block content %}
+<div class="offset-3 col-md-6">
+    <div class="card">
+        <form method="POST" action="{% url 'clients_mod_group' group=current.id%}">
+        <div class="card-body">               
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="recipient-name" class="col-form-label">Name:</label>
+			    <input type="text" class="form-control" name="clientName" value="{{current.name}}">
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#modClient">Modify client</button>        
+            <a class="btn btn-danger float-right" href="{% url 'clients_del_group' group=current.pk%}" role="button">Delete</a>
+        </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{% endblock %}
