@@ -94,16 +94,9 @@ def clients_del_user(request, user):
     return redirect('clients')
 
 # PROJECTS
-def projects(request):
-    """projects = {}
-    for project in Project.objects.all():        
-        for asset in Asset.objects.filter(project=project.id):
-            vulns = {}
-            for vuln in asset.vulnerabilities.all():
-                vulns.update({vuln.id : vuln})
-            
-            projects.update({project.id: {'info': project, 'risk': max_risk(vulns), 'issues': len(vulns)}})"""
-    return render(request, "app/projects.html", {'form': ProjectForm})
+def projects(request):  
+    form = ProjectForm(user=request.user)
+    return render(request, "app/projects.html", {'form': form})
 
 def projects_data(request):
     datatables = request.GET
@@ -114,27 +107,28 @@ def projects_data(request):
     order_col = datatables.get('order[0][column]')
     order_type = datatables.get('order[0][dir]', 'asc')
 
-    projects = Project.objects.all()
+    projects = Project.objects.filter(client__in=request.user.groups.all())
     records_total = projects.count()
     records_filtered = projects.count()
 
     if search:
         projects = Project.objects.filter(
                 Q(name__icontains=search)|
-                Q(program_name__icontains=search)|
-                Q(state__icontains=search)|
-                Q(offers_bounties__icontains=search)
+                Q(status__icontains=search)|
+                Q(start__icontains=search)|
+                Q(finished__icontains=search)|
+                Q(client__icontains=search)
             )
         records_total = projects.count()
         records_filtered = records_total
 
-    if order_col:
-        col_type = {'asc': '', 'desc': '-'}
-        if order_col == '2':
-            projects = projects.annotate(num_assets=Count('asset')).order_by('{}num_assets'.format(col_type[order_type]))
-        else:
-            col_relatons = {'0': 'name', '1': 'program_name', '3': 'state', '4': 'offers_bounties', '5': 'max_ammount'}
-            projects = projects.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
+    #if order_col:
+    #    col_type = {'asc': '', 'desc': '-'}
+    #    if order_col == '2':
+    #        projects = projects.annotate(num_assets=Count('asset')).order_by('{}num_assets'.format(col_type[order_type]))
+    #    else:
+    #        col_relatons = {'0': 'name', '1': 'program_name', '3': 'state', '4': 'offers_bounties', '5': 'max_ammount'}
+    #        projects = projects.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
 
     paginator = Paginator(projects, length)
     try:
@@ -144,22 +138,40 @@ def projects_data(request):
     except EmptyPage:
         object_list = paginator.page(paginator.num_pages).object_list
 
-    data = [
+    """data = [
         {
-            'first': {'name': projects.name, 'url': projects.url},
-            'source': projects.program_name,
+            'name': {'name': projects.name, 'id': projects.pk},
+            'status': projects.status,
+            'client': projects.client.name,
+            'risk': 'Informative',
             'assets': projects.asset_set.count(),
-            'state': projects.state,
-            'bounties': projects.offers_bounties,
-            'max': projects.max_ammount,
+            'issues': 0,
         } for projects in object_list
-    ]
+    ]"""
+    data = []
+    for projects in object_list:
+        #TODO: serach issues and risk adn changestatus
+        
+        data.append({
+            'name': {'name': projects.name, 'id': projects.pk},
+            'status': projects.status,
+            'client': projects.client.name,
+            'risk': 'Informative',
+            'assets': projects.asset_set.count(),
+            'issues': 0,
+        })
     return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
 
 def project_add(request):
-    return render(request, "project_add.html", {})
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+    return redirect('projects')
 
 def project_mod(request, project):
+    #TODO
     return render(request, "project_mod.html", {})
 
 def project_del(request, project):
@@ -169,17 +181,27 @@ def project_del(request, project):
     return redirect('/projects/')
 
 def project_info(request, project):
+    instance = get_object_or_404(Project, pk=project)
+    if not request.user.groups.filter(name=instance.client).exists():
+        return redirect('projects')
+    
+    form = ProjectForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+
     context = {
-        'project': Project.objects.get(id=project)
+        'project': instance,
+        'form': form,
+        'risks': None,
     }
-    return render(request, "project_info.html", context)
+    return render(request, 'app/project_info.html', context)
 
 def project_asset(request, project):
     context = {
         'project': Project.objects.get(id=project),
         'assets' : Asset.objects.filter(project=project)
     }
-    return render(request, "project_asset.html", context)
+    return render(request, "app/project_asset.html", context)
 
 def project_vuln(request, project):
     assets = Asset.objects.filter(project=project)
@@ -193,7 +215,7 @@ def project_vuln(request, project):
         'assets': assets,
         'vulnerabilities': vulns,
     }
-    return render(request, "project_vuln.html", context)
+    return render(request, "app/project_vuln.html", context)
 
 # ASSETS
 def asset_add(request, project):

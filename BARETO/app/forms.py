@@ -12,6 +12,7 @@ from app.models import *
 class ProjectForm(forms.ModelForm):
     name = forms.CharField(max_length=250, widget=forms.TextInput(attrs={'class':'form-control'}))
     status = forms.ChoiceField(choices=PROJECT_STATUS, widget=forms.Select(attrs={'class':'custom-select'}))
+    client = forms.ModelChoiceField(queryset=Group.objects.all(), widget=forms.Select(attrs={'class':'custom-select'}))
     start = forms.DateTimeField(
         initial=date.today, 
         input_formats=['%d/%m/%Y'],
@@ -33,6 +34,14 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(ProjectForm, self).__init__(*args, **kwargs)        
+        if user:
+            self.fields['client'].queryset = user.groups.all()
+
+    
 
 class UserClientCreateForm(UserCreationForm):
     groups = forms.ModelMultipleChoiceField(

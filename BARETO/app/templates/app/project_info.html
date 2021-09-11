@@ -1,27 +1,162 @@
-{% extends 'base.html' %}
+{% extends 'app/base.html' %}
 
 {% block title %}Project - {{ project.name }}{% endblock %}
 
-{% block menu %}
-<li>
-    <a><i class="fa fa-folder-open fa-fw"></i> Project {{ project.id }}</a>
-    <ul class="nav nav-second-level collapse">
-    	<li>
-            <a class="active" href="{% url 'project_info' project.id %}"><i class="fa fa-bar-chart-o fa-fw"></i> Information</a> 
-        </li>
-    	<li>
-            <a href="{% url 'project_asset' project.id %}"><i class="fa fa-sitemap fa-fw"></i> Assets</a> 
-        </li>
-        <li>
-            <a href="{% url 'project_vuln' project.id %}"><i class="fa fa-file-text-o fa-fw"></i> Vulnerabilities</a>
-        </li>
-    </ul>
+{% block submenu %}
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_info' project.id %}" class="nav-link">Details</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_asset' project.id %}" class="nav-link">Assets</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_vuln' project.id %}" class="nav-link">Vulnerabilities</a>
 </li>
 {% endblock %}
-
 {% block content %}
-<h1>INFO</h1>
+{% if form.errors %}
+<div class="alert alert-danger alert-dismissible">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+    <h5><i class="icon fas fa-ban"></i> Alert!</h5>
+    {{form.errors}}
+</div>
+{% endif %}
+
+<div class="modal fade" id="deleteProject" tabindex="-1" role="dialog" aria-labelledby="deleteProjectLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <div class="modal-header">
+				<h5 class="modal-title" id="deleteProjectLabel">Delete project {{project.name}}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+            
+			<div class="modal-body">
+                <p>Deleting the project will delete also it's assets and the vulnerabilities. Do you want to continue?</p>
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                <a class="btn btn-danger" href="{% url 'project_del' project=project.id%}" role="button">Delete</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+    <section class="col-lg-6 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-file-alt mr-1"></i>
+                  Details
+                </h3>
+            </div>
+            <form method="POST" action="{% url 'project_info' project=project.id%}">
+            <div class="card-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Name:</label>
+                    {{form.name}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Client:</label>
+                    {{form.client}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Status:</label>
+                    {{form.status}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Start:</label>
+                    <div class="input-group date" id="startProject" data-target-input="nearest">
+                        {{form.start}}
+                        <div class="input-group-append" data-target="#startProject" data-toggle="datetimepicker">
+                            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Finished:</label>
+                    <div class="input-group date" id="finishProject" data-target-input="nearest">
+                        {{form.finished}}
+                        <div class="input-group-append" data-target="#finishProject" data-toggle="datetimepicker">
+                            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="message-text" class="col-form-label">Notes:</label>
+                    {{form.notes}}
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#modUser">Modify project</button>
+                <button type="button" class="btn btn-danger float-right" data-toggle="modal" data-target="#deleteProject">Delete project</button>
+            </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="col-lg-6 connectedSortable">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Risks
+                </h3>
+            </div>            
+            <div class="card-body">
+    
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Assets risks
+                </h3>
+            </div>            
+            <div class="card-body">
+                Char bar asset by vulns risks
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Vulnerabilities types
+                </h3>
+            </div>            
+            <div class="card-body">
+    
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}
 
 {% block js %}
+<script>
+$(document).ready(function(){
+    
+
+    tinymce.init({
+        selector: 'textarea',
+        plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+        toolbar: 'undo redo | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | checklist |  table | code',
+        toolbar_mode: 'floating',
+        height: "250",
+    });
+
+    //$('#startProject').datetimepicker({dateFormat: 'yy-mm-dd', timeFormat: 'H:m:ss', showSecond: true});
+    $('#startProject').datetimepicker();
+	//$('#finishProject').datetimepicker({dateFormat: 'yy-mm-dd', timeFormat: 'H:m:ss', showSecond: true});
+    $('#finishProject').datetimepicker();
+});
+</script>
 {% endblock %}
