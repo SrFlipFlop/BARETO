@@ -13,6 +13,16 @@ PROJECT_STATUS = (
     (4, 'Finished'),
 )
 
+ASSET_TYPE = (
+    (1, 'Web'),
+    (2, 'Infrastructure'),
+    (3, 'Android application'),
+    (4, 'iOS application'),
+    (5, 'Code'),
+    (6, 'IoT'),
+    (7, 'Other'),
+)
+
 VULNERABILITY_STATUS = (
     (1, 'Draft'),
     (2, 'Ready'),
@@ -25,6 +35,10 @@ VULNERABILITY_RISK = (
     (3, 'Medium'),
     (4, 'High'),
     (5, 'Critical')
+)
+
+VULNERABILITY_TYPE = (
+    (1, 'Other'),
 )
 
 class Project(models.Model):
@@ -46,6 +60,7 @@ class Vulnerability(models.Model):
     cvss = models.CharField(max_length=250)
     category = models.CharField(max_length=250)
     status = models.IntegerField(choices=VULNERABILITY_STATUS, default=1)
+    type = models.IntegerField(choices=VULNERABILITY_TYPE, default=1)
     description = HTMLField(default='TBC')
     impact = HTMLField(default='TBC')
     recomendation = HTMLField(default='TBC')
@@ -60,6 +75,7 @@ class Template(models.Model):
     cvss = models.CharField(max_length=250)
     category = models.CharField(max_length=250)
     status = models.IntegerField(choices=VULNERABILITY_STATUS)
+    type = models.IntegerField(choices=VULNERABILITY_TYPE, default=1)
     description = HTMLField(default='TBC')
     impact = HTMLField(default='TBC')
     recomendation = HTMLField(default='TBC')
@@ -70,6 +86,7 @@ class Template(models.Model):
 class Asset(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=250)
+    type = models.IntegerField(choices=ASSET_TYPE, default=1)
     notes = HTMLField(default='TBC')
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     vulnerabilities = models.ManyToManyField(Vulnerability, through='AssetVulnerability')
