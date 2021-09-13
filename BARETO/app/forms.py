@@ -41,7 +41,14 @@ class ProjectForm(forms.ModelForm):
         if user:
             self.fields['client'].queryset = user.groups.all()
 
-    
+class AssetForm(forms.ModelForm):
+    name = forms.CharField(max_length=250, widget=forms.TextInput(attrs={'class':'form-control'}))
+    type = forms.ChoiceField(choices=ASSET_TYPE, widget=forms.Select(attrs={'class':'custom-select'}))
+    notes = forms.CharField(widget=TinyMCE(attrs={'cols': 80, 'rows': 30}))
+
+    class Meta:
+        model = Asset
+        fields = ['name', 'type', 'notes']
 
 class UserClientCreateForm(UserCreationForm):
     groups = forms.ModelMultipleChoiceField(

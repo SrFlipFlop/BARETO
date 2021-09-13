@@ -1,148 +1,113 @@
-{% extends 'base.html' %}
+{% extends 'app/base.html' %}
 
 {% block title %}Project - {{ project.name }}{% endblock %}
 
-{% block menu %}
-<li>
-    <a><i class="fa fa-folder-open fa-fw"></i> Project {{ project.id }}</a>
-    <ul class="nav nav-second-level collapse">
-        <li>
-            <a href="{% url 'project_info' project.id %}"><i class="fa fa-bar-chart-o fa-fw"></i> Information</a> 
-        </li>
-        <li>
-            <a class="active" href="{% url 'project_asset' project.id %}"><i class="fa fa-sitemap fa-fw"></i> Assets</a> 
-        </li>
-        <li>
-            <a href="{% url 'project_vuln' project.id %}"><i class="fa fa-file-text-o fa-fw"></i> Vulnerabilities</a>
-        </li>
-    </ul>
+{% block submenu %}
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_info' project.id %}" class="nav-link">Project details</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_asset' project.id %}" class="nav-link">Assets</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_vuln' project.id %}" class="nav-link">Vulnerabilities</a>
 </li>
 {% endblock %}
 
 {% block content %}
-<button type="button" id="create-asset-button" class="btn btn-default">Create asset</button>
-<br><br>
-<table id="assets-table" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" role="grid" aria-describedby="dataTables-example_info" style="width: 100%;" width="100%">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Vulnerabilities</th>
-            <th>Notes</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for asset in assets %}
-            <tr>
-            <td>{{ asset.id }}</td>
-            <td>{{ asset.name }}</td>
-            <td>{{ asset.vulnerabilities.count }}</td>
-            <td>{{ asset.notes }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<!-- CREATE ASSET MODAL -->
-<div class="modal fade" id="create-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-    <div class="modal-dialog">
-        <form method="POST">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h4 class="modal-title" id="myModalLabel">New asset</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Asset name:</label>
-                        <input class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Asset notes:</label>
-                        <textarea class="form-control" name="content" id="create-editor"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" formaction="{% url 'asset_add' project.id %}">Add</button>                        
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-            {% csrf_token %}
-        </form>
+<div class="card">
+    <div class="card-body">
+        <table id="assets-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Risk</th>
+                    <th>Vulnerabilities</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
+	<div class="card-footer">
+		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addAsset">Add asset</button>
+	</div>
 </div>
 
-<!-- MODIFY ASSET MODAL -->
-<div class="modal fade" id="mod-asset" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-    <div class="modal-dialog">
-        <form method="POST">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h4 class="modal-title" id="myModalLabel">Modify asset</h4>
+<div class="modal fade" id="addAsset" tabindex="-1" role="dialog" aria-labelledby="addAssetLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <form method="POST" action="{% url 'asset_add' project=project.id%}">
+            <div class="modal-header">
+				<h5 class="modal-title" id="addAssetLabel">New asset</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+			<div class="modal-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Name:</label>
+                    {{form.name}}
                 </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label>Asset name:</label>
-                            <input class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Asset notes:</label>
-                            <textarea class="form-control" name="content" id="mod-editor"></textarea>
-                        </div>
-                    </form>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Type:</label>
+                    {{form.type}}
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger">Delete</button>
-                    <button type="submit" class="btn btn-primary" formaction="{% url 'asset_mod' project.id %}">Modify</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Notes:</label>
+                    {{form.notes}}
                 </div>
-            </div>
-            {% csrf_token %}
-        </form>
-    </div>
+			</div>
+
+			<div class="modal-footer">
+				<button id="closeClearAsset" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
+				<button type="submit" class="btn btn-primary">Create asset</button>
+			</div>
+            </form>
+		</div>
+	</div>
 </div>
 {% endblock %}
 
 {% block js %}
 <script>
 $(document).ready(function() {
+    tinymce.init({
+      selector: 'textarea',
+      plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+      toolbar: 'undo redo | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | checklist |  table | code',
+      toolbar_mode: 'floating',
+    });
+
+    $('#closeClearAsset').click(function() {
+		$('#addAsset').find("input,select").val('').end();
+		tinymce.activeEditor.setContent('');
+	});
+
     $('#assets-table').DataTable({
-        responsive: true
-    });
-    
-    $('#assets-table').on('click', 'tr', function () {
-        $('#mod-asset').modal("show");
-    });
+		"processing": true,
+		"serverSide": true,
+		"ajax": {
+			"url": "{% url 'assets_data' project=project.pk%}",
+			"type": "GET"
+		},
+		"columns": [
+			{
+				"data": "name",
+				render: function(data, type, row, meta) {
+					return '<a href="/project/{{project.pk}}/assets/'+data.id+'/">'+data.name+'</a>';
+				}
+			},
+			{"data": "type"},
+			{"data": "risk"},
+			{"data": "vulnerabilities"},
+		]
+	});
 
-    $('#create-asset-button').on('click', function () {
-        $('#create-asset').modal("show");
-    });
+
 });
-
-var createAssetEditor = ClassicEditor
-    .create(document.querySelector('#create-editor'), {
-        toolbar: ['headings', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo'],
-        heading: {
-            options: [
-                { modelElement: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                { modelElement: 'heading1', viewElement: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-                { modelElement: 'heading2', viewElement: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' }
-            ]
-        },
-        image: {
-            toolbar: [ 'imageTextAlternative', '|', 'imageStyleAlignLeft', 'imageStyleFull', 'imageStyleAlignRight' ],
-            styles: [
-                'imageStyleFull',
-                'imageStyleAlignLeft',
-                'imageStyleAlignRight'
-            ]
-        }
-    })
-    .catch( error => {
-        console.log( error );
-    });
-var createAssetEditor = ClassicEditor.create(document.querySelector('#mod-editor')).catch( error => {console.error( error );});
 </script>
 {% endblock %}

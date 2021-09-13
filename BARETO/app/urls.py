@@ -25,10 +25,15 @@ urlpatterns = [
     path('projects/', projects, name='projects'),
     path('projects/data/', projects_data, name='projects_data'),
     path('project/add', project_add, name='project_add'),
-    path('project/<uuid:project>/mod', project_mod, name='project_mod'),
-    path('project/<uuid:project>/del', project_del, name='project_del'),
     path('project/<uuid:project>/', project_info, name='project_info'),
+    path('project/<uuid:project>/del', project_del, name='project_del'),
+    
     path('project/<uuid:project>/assets/', project_asset, name='project_asset'),
+    path('project/<uuid:project>/assets/data/', assets_data, name='assets_data'),
+    path('project/<uuid:project>/assets/add', asset_add, name='asset_add'),
+    path('project/<uuid:project>/assets/<uuid:asset>/', asset_mod, name='asset_mod'),
+    path('project/<uuid:project>/assets/<uuid:asset>/del', asset_del, name='asset_del'),
+
     path('project/<uuid:project>/vulns/', project_vuln, name='project_vuln'),
 
     path('clients/', clients, name='clients'),

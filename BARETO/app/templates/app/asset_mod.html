@@ -1,0 +1,91 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Asset - {{asset.name}}{% endblock %}
+
+{% block submenu %}
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_info' project=project %}" class="nav-link">Project details</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_asset' project=project %}" class="nav-link">Assets</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_vuln' project=project %}" class="nav-link">Vulnerabilities</a>
+</li>
+{% endblock %}
+
+{% block content %}
+{% if form.errors %}
+<div class="alert alert-danger alert-dismissible">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+    <h5><i class="icon fas fa-ban"></i> Alert!</h5>
+    {{form.errors}}
+</div>
+{% endif %}
+
+<div class="modal fade" id="deleteAsset" tabindex="-1" role="dialog" aria-labelledby="deleteAssetLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <div class="modal-header">
+				<h5 class="modal-title" id="deleteAssetLabel">Delete asset {{asset.name}}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+            
+			<div class="modal-body">
+                <p>Deleting the asset will delete also it's vulnerabilities. Do you want to continue?</p>
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                <a class="btn btn-danger" href="{% url 'asset_del' project=project asset=asset.pk%}" role="button">Delete</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="offset-3 col-md-6">
+    <div class="card">
+        <form method="POST" action="{% url 'asset_mod' project=project asset=asset.pk %}">
+        <div class="card-body">               
+            {% csrf_token %}
+            <div class="modal-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Name:</label>
+                    {{form.name}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Type:</label>
+                    {{form.type}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Notes:</label>
+                    {{form.notes}}
+                </div>
+			</div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#modAsset">Modify asset</button>
+            <button type="button" class="btn btn-danger float-right" data-toggle="modal" data-target="#deleteAsset">Delete asset</button>
+        </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    tinymce.init({
+        selector: 'textarea',
+        plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+        toolbar: 'undo redo | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | checklist |  table | code',
+        toolbar_mode: 'floating',
+        height: "250",
+    });
+});
+</script>
+{% endblock %}

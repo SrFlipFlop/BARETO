@@ -112,12 +112,11 @@ def projects_data(request):
     records_filtered = projects.count()
 
     if search:
-        projects = Project.objects.filter(
+        projects = projects.filter(
                 Q(name__icontains=search)|
                 Q(status__icontains=search)|
                 Q(start__icontains=search)|
-                Q(finished__icontains=search)|
-                Q(client__icontains=search)
+                Q(finished__icontains=search)
             )
         records_total = projects.count()
         records_filtered = records_total
@@ -154,7 +153,7 @@ def projects_data(request):
         
         data.append({
             'name': {'name': projects.name, 'id': projects.pk},
-            'status': projects.status,
+            'status': projects.get_status_display(),
             'client': projects.client.name,
             'risk': 'Informative',
             'assets': projects.asset_set.count(),
@@ -169,10 +168,6 @@ def project_add(request):
             form.save()
 
     return redirect('projects')
-
-def project_mod(request, project):
-    #TODO
-    return render(request, "project_mod.html", {})
 
 def project_del(request, project):
     project = Project.objects.get(id=project)
@@ -197,11 +192,8 @@ def project_info(request, project):
     return render(request, 'app/project_info.html', context)
 
 def project_asset(request, project):
-    context = {
-        'project': Project.objects.get(id=project),
-        'assets' : Asset.objects.filter(project=project)
-    }
-    return render(request, "app/project_asset.html", context)
+    instance = get_object_or_404(Project, id=project)
+    return render(request, "app/project_asset.html", {'project': instance, 'form': AssetForm})
 
 def project_vuln(request, project):
     assets = Asset.objects.filter(project=project)
@@ -218,14 +210,95 @@ def project_vuln(request, project):
     return render(request, "app/project_vuln.html", context)
 
 # ASSETS
+def assets_data(request, project):
+    datatables = request.GET
+    draw = int(datatables.get('draw'))
+    start = int(datatables.get('start'))
+    length = int(datatables.get('length'))
+    search = datatables.get('search[value]')
+    order_col = datatables.get('order[0][column]')
+    order_type = datatables.get('order[0][dir]', 'asc')
+
+    instance = get_object_or_404(Project, pk=project)
+    if not request.user.groups.filter(name=instance.client).exists():
+        return JsonResponse({'draw': draw, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': []})
+
+    assets = instance.asset_set.all()
+    records_total = assets.count()
+    records_filtered = assets.count()
+
+    if search:
+        assets = assets.filter(
+                Q(name__icontains=search)|
+                Q(type__icontains=search)
+            )
+        records_total = assets.count()
+        records_filtered = records_total
+
+    if order_col:
+        col_type = {'asc': '', 'desc': '-'}
+        if order_col == '3':
+            assets = assets.annotate(num_vulns=Count('vulnerabilities')).order_by('{}num_vulns'.format(col_type[order_type]))
+        else:
+            col_relatons = {'0': 'name', '1': 'type', '3': 'risk', '4': 'vulnerabilities'}
+            assets = assets.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
+
+    paginator = Paginator(assets, length)
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
+
+    """data = [
+        {
+            'name': {'name': projects.name, 'id': projects.pk},
+            'status': projects.status,
+            'client': projects.client.name,
+            'risk': 'Informative',
+            'assets': projects.asset_set.count(),
+            'issues': 0,
+        } for projects in object_list
+    ]"""
+    data = []
+    for asset in object_list:        
+        data.append({
+            'name': {'name': asset.name, 'id': asset.pk},
+            'type': asset.get_type_display(),
+            'risk': 'Informative',
+            'vulnerabilities': asset.vulnerabilities.count()
+        })
+    return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
+
 def asset_add(request, project):
-    return redirect('/project/{0}/'.format(project))
+    if request.method == 'POST':
+        instance = get_object_or_404(Project, id=project)
+        form = AssetForm(request.POST)
+        if form.is_valid():          
+            asset = Asset(
+                name=form.cleaned_data['name'], 
+                type=form.cleaned_data['type'],
+                notes=form.cleaned_data['notes'],
+                project=instance
+            )
+            asset.save()
+    
+    return redirect('project_asset', project=project)
 
-def asset_mod(request, project):
-    return redirect('/project/{0}/'.format(project))
+def asset_mod(request, project, asset):
+    instance = get_object_or_404(Asset, pk=asset)
+    form = AssetForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+        return redirect('project_asset', project=project)
+    
+    return render(request, "app/asset_mod.html", {'asset': instance, 'project': project, 'form': form})
 
-def asset_del(request, project):
-    return redirect('/project/{0}/'.format(project))
+def asset_del(request, project, asset):
+    instance = get_object_or_404(Asset, pk=asset)
+    instance.delete()
+    return redirect('project_asset', project=project)
 
 # VULNERABILITIES
 def vuln_add(request, project):
