@@ -1,52 +1,207 @@
-{% extends 'base.html' %}
+{% extends 'app/base.html' %}
 
 {% block title %}Project - {{ project.name }}{% endblock %}
 
-{% block menu %}
-<li>
-    <a><i class="fa fa-folder-open fa-fw"></i> Project {{ project.id }}</a>
-    <ul class="nav nav-second-level collapse">
-        <li>
-            <a href="{% url 'project_info' project.id %}"><i class="fa fa-bar-chart-o fa-fw"></i> Information</a> 
-        </li>
-        <li>
-            <a href="{% url 'project_asset' project.id %}"><i class="fa fa-sitemap fa-fw"></i> Assets</a> 
-        </li>
-        <li>
-            <a class="active" href="{% url 'project_vuln' project.id %}"><i class="fa fa-file-text-o fa-fw"></i> Vulnerabilities</a>
-        </li>
-    </ul>
+{% block submenu %}
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_info' project.id %}" class="nav-link">Project details</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_asset' project.id %}" class="nav-link">Assets</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_vuln' project.id %}" class="nav-link">Vulnerabilities</a>
 </li>
 {% endblock %}
 
 {% block content %}
-<button type="button" class="btn btn-default">Create vulnerability</button>
-<br><br>
-<table id="vulns-table" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" role="grid" aria-describedby="dataTables-example_info" style="width: 100%;" width="100%">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Risk</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Asset</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for vuln in vulnerabilities %}
-            <tr>
-            <td>{{ vuln.id }}</td>
-            <td>{{ vuln.name }}</td>
-            <td>{{ vuln.risk }}</td>
-            <td>{{ vuln.category }}</td>
-            <td>{{ vuln.status }}</td>
-            <td>None</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card">
+    <div class="card-body">
+        <table id="vulnerabilities-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Risk</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Assets</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+	<div class="card-footer">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importVunlerability">Import vunlerability</button>
+		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addVunlerability">Create vunlerability</button>
+	</div>
+</div>
+
+<div class="modal fade" id="importVunlerability" tabindex="-1" role="dialog" aria-labelledby="importVunlerabilityLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <form method="POST" action="{% url 'vuln_add' project=project.id%}">
+            <div class="modal-header">
+				<h5 class="modal-title" id="importVunlerabilityLabel">Import vulnerability</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+			<div class="modal-body">
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Assets:</label>
+                    <select name='assets' class="custom-select select2 select2-hidden-accessible" style="width: 100%;" multiple="multiple">
+                        <option></option>
+                        {% for asset in assets %}
+                        <option value="{{asset.pk}}">{{asset.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+			</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Templates:</label>
+                    <select name='template' class="custom-select select2 select2-hidden-accessible" style="width: 100%;">
+                        <option></option>
+                        {% for template in templates %}
+                        <option value={{template.pk}}>{{template.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+			</div>
+
+            {% csrf_token %}
+            <input type="hidden" name="addtype" value="import">
+
+			<div class="modal-footer">
+				<button id="closeClearImportVuln" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
+				<button type="submit" class="btn btn-primary">Import vunlerability</button>
+			</div>
+            </form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="addVunlerability" tabindex="-1" role="dialog" aria-labelledby="addVunlerabilityLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+		<div class="modal-content">
+            <form method="POST" action="{% url 'vuln_add' project=project.id%}">
+            <div class="modal-header">
+				<h5 class="modal-title" id="addVunlerabilityLabel">New vulnerability</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+			<div class="modal-body">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Name:</label>
+                            {{form.name}}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Status:</label>
+                            {{form.status}}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Type:</label>
+                            {{form.type}}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Risk:</label>
+                            {{form.risk}}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">CVSS:</label>
+                            {{form.cvss}}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Assets:</label>
+                            {{form.assets}}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Description:</label>
+                    {{form.description}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Impact:</label>
+                    {{form.impact}}
+                </div>
+                <div class="form-group">
+                    <label for="recipient-name" class="col-form-label">Recommendation:</label>
+                    {{form.recomendation}}
+                </div>
+			</div>
+
+            {% csrf_token %}
+            <input type="hidden" name="addtype" value="create">
+
+			<div class="modal-footer">
+				<button id="closeClearAsset" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
+				<button type="submit" class="btn btn-primary">Create vunlerability</button>
+			</div>
+            </form>
+		</div>
+	</div>
+</div>
 {% endblock %}
 
 {% block js %}
+<script>
+$(document).ready(function() {
+    $('#vulnerabilities-table').DataTable({
+		"processing": true,
+		"serverSide": true,
+		"ajax": {
+			"url": "{% url 'vulns_data' project=project.pk%}",
+			"type": "GET"
+		},
+		"columns": [
+			{
+				"data": "name",
+				render: function(data, type, row, meta) {
+					return '<a href="/project/{{project.pk}}/vulns/'+data.id+'/">'+data.name+'</a>';
+				}
+			},
+			{"data": "risk"},
+			{"data": "category"},
+			{"data": "status"},
+            {"data": "assets"},
+		]
+	});
+
+    $('.select2').select2()
+
+    $('#closeClearImportVuln').click(function() {
+		$('#importVunlerability').find("input,select").val('').end();;
+	});
+
+    tinymce.init({
+        selector: 'textarea',
+        plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+        toolbar: 'undo redo | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | checklist |  table | code',
+        toolbar_mode: 'floating',
+    });
+});
+</script>
 {% endblock %}
