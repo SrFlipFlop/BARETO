@@ -50,7 +50,7 @@ class Project(models.Model):
     client = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
     notes = HTMLField(default='TBC')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class Vulnerability(models.Model):
@@ -58,29 +58,27 @@ class Vulnerability(models.Model):
     name = models.CharField(max_length=250)
     risk = models.IntegerField(choices=VULNERABILITY_RISK, default=1)
     cvss = models.CharField(max_length=250)
-    category = models.CharField(max_length=250)
     status = models.IntegerField(choices=VULNERABILITY_STATUS, default=1)
     type = models.IntegerField(choices=VULNERABILITY_TYPE, default=1)
     description = HTMLField(default='TBC')
     impact = HTMLField(default='TBC')
     recomendation = HTMLField(default='TBC')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class Template(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=250)
-    risk = models.IntegerField(choices=VULNERABILITY_RISK)
+    risk = models.IntegerField(choices=VULNERABILITY_RISK, default=1)
     cvss = models.CharField(max_length=250)
-    category = models.CharField(max_length=250)
-    status = models.IntegerField(choices=VULNERABILITY_STATUS)
+    status = models.IntegerField(choices=VULNERABILITY_STATUS, default=1)
     type = models.IntegerField(choices=VULNERABILITY_TYPE, default=1)
     description = HTMLField(default='TBC')
     impact = HTMLField(default='TBC')
     recomendation = HTMLField(default='TBC')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class Asset(models.Model):
@@ -91,7 +89,7 @@ class Asset(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     vulnerabilities = models.ManyToManyField(Vulnerability, through='AssetVulnerability')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 class AssetVulnerability(models.Model):

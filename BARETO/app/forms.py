@@ -50,6 +50,24 @@ class AssetForm(forms.ModelForm):
         model = Asset
         fields = ['name', 'type', 'notes']
 
+class VulnerabilityForm(forms.ModelForm):
+    name = forms.CharField(max_length=250, widget=forms.TextInput(attrs={'class':'form-control'}))
+    risk = forms.ChoiceField(choices=VULNERABILITY_RISK, widget=forms.Select(attrs={'class':'custom-select'}))
+    cvss = forms.CharField(max_length=250, widget=forms.TextInput(attrs={'class':'form-control'}))
+    status = forms.ChoiceField(choices=VULNERABILITY_STATUS, widget=forms.Select(attrs={'class':'custom-select'}))
+    type = forms.ChoiceField(choices=VULNERABILITY_TYPE, widget=forms.Select(attrs={'class':'custom-select'}))
+    assets = forms.ModelMultipleChoiceField(queryset=Asset.objects.all(),widget=forms.SelectMultiple(attrs={'class':'custom-select'}))
+
+    class Meta:
+        model = Vulnerability
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super(VulnerabilityForm, self).__init__(*args, **kwargs)        
+        if project:
+            self.fields['assets'].queryset = project.asset_set.all()
+
 class UserClientCreateForm(UserCreationForm):
     groups = forms.ModelMultipleChoiceField(
         required=False,

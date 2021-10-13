@@ -196,16 +196,12 @@ def project_asset(request, project):
     return render(request, "app/project_asset.html", {'project': instance, 'form': AssetForm})
 
 def project_vuln(request, project):
-    assets = Asset.objects.filter(project=project)
-    vulns = []
-    for asset in assets:
-        for vuln in asset.vulnerabilities.all():
-            vulns.append(vuln)
-
+    instance = get_object_or_404(Project, id=project)
     context = {
-        'project': Project.objects.get(id=project),
-        'assets': assets,
-        'vulnerabilities': vulns,
+        'project': instance,
+        'assets': instance.asset_set.all(),
+        'templates': Template.objects.all(),
+        'form': VulnerabilityForm(project=instance),
     }
     return render(request, "app/project_vuln.html", context)
 
@@ -301,13 +297,117 @@ def asset_del(request, project, asset):
     return redirect('project_asset', project=project)
 
 # VULNERABILITIES
+def vulns_data(request, project):    
+    datatables = request.GET
+    draw = int(datatables.get('draw'))
+    start = int(datatables.get('start'))
+    length = int(datatables.get('length'))
+    search = datatables.get('search[value]')
+    order_col = datatables.get('order[0][column]')
+    order_type = datatables.get('order[0][dir]', 'asc')
+
+    instance = get_object_or_404(Project, pk=project)
+    if not request.user.groups.filter(name=instance.client).exists():
+        return JsonResponse({'draw': draw, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': []})
+
+    query = Q()
+    for asset in instance.asset_set.all():
+        query = query | Q(asset__pk=asset.pk)
+
+    #TODO: Group vulns by assets --> {'Vuln1': ['asset1','asset2']}
+    vulnerabilities = Vulnerability.objects.filter(query)
+    records_total = vulnerabilities.count()
+    records_filtered = vulnerabilities.count()
+
+    if search:
+        vulnerabilities = vulnerabilities.filter(
+                Q(name__icontains=search)|
+                Q(type__icontains=search)
+            )
+        records_total = vulnerabilities.count()
+        records_filtered = records_total
+
+    if order_col:
+        col_type = {'asc': '', 'desc': '-'}
+        #if order_col == '3':
+        #    assets = vulnerabilities.annotate(num_vulns=Count('vulnerabilities')).order_by('{}num_vulns'.format(col_type[order_type]))
+        #else:
+        #    col_relatons = {'0': 'name', '1': 'type', '3': 'risk', '4': 'vulnerabilities'}
+        #    assets = vulnerabilities.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
+
+    paginator = Paginator(vulnerabilities, length)
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
+
+    """data = [
+        {
+            'name': {'name': projects.name, 'id': projects.pk},
+            'status': projects.status,
+            'client': projects.client.name,
+            'risk': 'Informative',
+            'assets': projects.asset_set.count(),
+            'issues': 0,
+        } for projects in object_list
+    ]"""
+    data = []
+    for vulnerability in object_list:        
+        data.append({
+            'name': {'name': vulnerability.name, 'id': vulnerability.pk},
+            'risk': vulnerability.get_risk_display(),
+            'category': vulnerability.get_type_display(),
+            'status': vulnerability.get_status_display(),
+            'assets': '<br>'.join([asset.name for asset in vulnerability.asset_set.all()]),
+        })
+    return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
+
 def vuln_add(request, project):
+    if request.method == 'POST':
+        if request.POST.get('addtype') == 'import':
+            template = get_object_or_404(Template, pk=request.POST.get('template')) 
+            #TODO: import better vuln not create same vuln for different assets!
+            for id in request.POST.getlist('assets'):
+                asset = get_object_or_404(Asset, pk=id)
+                asset.vulnerabilities.create(
+                    name=template.name,
+                    risk=template.risk,
+                    cvss=template.cvss,
+                    status=template.status,
+                    type=template.type,
+                    description=template.description,
+                    impact=template.impact,
+                    recomendation=template.recomendation,
+                )
+                asset.save()
+        else:
+            #TODO create vuln from scratch
+            form = VulnerabilityForm(request.POST)
+            if form.is_valid():
+                print(form.cleaned_data)
+                #{'name': 'Test', 'risk': '1', 'cvss': '1234', 'status': '1', 'type': '1', 'description': '<p>TBC</p>', 'impact': '<p>TBC</p>', 'recomendation': '<p>TBC</p>', 'assets': <QuerySet [<Asset: Test>]>}
+                for id in request.POST.getlist('assets'):                    
+                    asset = get_object_or_404(Asset, pk=id)               
+                    """asset.vulnerabilities.create(
+                        name=form.cleaned_data.name,
+                        risk=template.risk,
+                        cvss=template.cvss,
+                        status=template.status,
+                        type=template.type,
+                        description=template.description,
+                        impact=template.impact,
+                        recomendation=template.recomendation,
+                    )"""
+                    asset.save()
+
+    return redirect('project_vuln', project=project)
+
+def vuln_mod(request, project, vuln):
     return redirect('/project/{0}/'.format(project))
 
-def vuln_mod(request, project):
-    return redirect('/project/{0}/'.format(project))
-
-def vuln_del(request, project):
+def vuln_del(request, project, vuln):
     return redirect('/project/{0}/'.format(project))
 
 # API
