@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from rest_framework import viewsets
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse

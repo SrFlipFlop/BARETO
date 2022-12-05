@@ -32,7 +32,7 @@
         </table>
     </div>
 	<div class="card-footer">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importVunlerability">Import vunlerability</button>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importVunlerability">Import template</button>
 		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addVunlerability">Create vunlerability</button>
 	</div>
 </div>
@@ -198,7 +198,8 @@ $(document).ready(function() {
 
     tinymce.init({
         selector: 'textarea',
-        plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+        //plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+        plugins: 'autolink lists table',
         toolbar: 'undo redo | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | checklist |  table | code',
         toolbar_mode: 'floating',
     });

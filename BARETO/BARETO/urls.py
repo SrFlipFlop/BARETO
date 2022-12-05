@@ -1,4 +1,4 @@
-from django.conf.urls import url, include
+from django.urls import path, include
 from django.contrib import admin
 from rest_framework import routers
 
@@ -10,9 +10,9 @@ router.register(r'assets', AssetViewSet)
 router.register(r'vulnerabilities', VulnerabilityViewSet)
 
 urlpatterns = [    
-    url(r'^api/', include(router.urls)),
-    url(r'^admin/', admin.site.urls),
-    url(r'^tinymce/', include('tinymce.urls')),
-    url(r'^api-auth/', include('rest_framework.urls')),
-    url(r'^', include('app.urls')),
+    path(r'api/', include(router.urls)),
+    path(r'admin/', admin.site.urls),
+    path(r'tinymce/', include('tinymce.urls')),
+    path(r'api-auth/', include('rest_framework.urls')),
+    path(r'', include('app.urls')),
 ]

@@ -15,4 +15,4 @@ fi
 python manage.py migrate
 python manage.py migrate sessions
 
-exec "$@"
+exec "$@"(.env)
