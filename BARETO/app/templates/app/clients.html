@@ -3,6 +3,18 @@
 {% block title %}Clients{% endblock %}
 
 {% block content %}
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {% for key, values in error.items %}
+    {% for value in values %}{{value}}{% endfor %}
+    {% endfor %}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endif %}
+
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">Clients</h3>
@@ -83,7 +95,7 @@
                 {% for element in users %}
                 <tr>
                     {% if user.is_superuser %}
-                    <td><a href="{% url 'clients_mod_user' user=user.id %}">{{element.name}}</a></td>
+                    <td><a href="{% url 'clients_mod_user' user=element.id %}">{{element.name}}</a></td>
                     {% else %}
                     <td>{{element.name}}</td>
                     {% endif %}

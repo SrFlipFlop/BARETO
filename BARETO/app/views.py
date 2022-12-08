@@ -22,23 +22,27 @@ def max_risk(vulns):
 # CLIENTS
 @login_required
 def clients(request):
-    users = []
+    context = {'users': [], 'clients': [], 'form': UserClientCreateForm}
     for user in User.objects.all():
-        users.append({
+        context['users'].append({
             'id': user.pk,
             'name': user.username,
             'clients': ', '.join([g.name for g in user.groups.all()]),
         })
     
-    clients = []
     for group in Group.objects.all():
-        clients.append({
+        context['clients'].append({
             'id': group.pk,
             'name': group.name,
             'projects': Project.objects.filter(client__name=group.name).count(),
             'users': User.objects.filter(groups__name=group.name).count(),
         })
-    return render(request, "app/clients.html", {'users': users, 'clients': clients, 'form': UserClientCreateForm})
+
+    if 'error' in request.session:
+        context['error'] = request.session['error']
+        del request.session['error']
+
+    return render(request, "app/clients.html", context)
 
 @login_required
 def clients_add_group(request):
@@ -76,6 +80,8 @@ def clients_add_user(request):
             for group in form.cleaned_data['groups']:
                 new_user.groups.add(group)
             new_user.save()
+        else:
+            request.session['error'] = form.errors
 
     return redirect('clients')
 
