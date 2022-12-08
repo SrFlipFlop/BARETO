@@ -10,9 +10,10 @@ router.register(r'assets', AssetViewSet)
 router.register(r'vulnerabilities', VulnerabilityViewSet)
 
 urlpatterns = [    
-    path(r'api/', include(router.urls)),
-    path(r'admin/', admin.site.urls),
-    path(r'tinymce/', include('tinymce.urls')),
-    path(r'api-auth/', include('rest_framework.urls')),
-    path(r'', include('app.urls')),
+    path('api/', include(router.urls)),
+    path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('tinymce/', include('tinymce.urls')),
+    path('api-auth/', include('rest_framework.urls')),
+    path('', include('app.urls')),
 ]

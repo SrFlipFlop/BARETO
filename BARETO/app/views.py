@@ -4,11 +4,13 @@ from django.http import JsonResponse
 from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import User, Group
+from django.contrib.auth.decorators import login_required
 
 from app.models import *
 from app.serializers import *
 from app.forms import *
 
+@login_required
 def index(request):
     return render(request, "app/dashboard.html", {})
 
@@ -18,6 +20,7 @@ def max_risk(vulns):
     return risks[index]
 
 # CLIENTS
+@login_required
 def clients(request):
     users = []
     for user in User.objects.all():
@@ -37,13 +40,15 @@ def clients(request):
         })
     return render(request, "app/clients.html", {'users': users, 'clients': clients, 'form': UserClientCreateForm})
 
+@login_required
 def clients_add_group(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.is_staff:
         new_group, created = Group.objects.get_or_create(name=request.POST.get('clientName', 'Default'))
     return redirect('clients')
 
+@login_required
 def clients_mod_group(request, group):
-    if request.user.is_superuser:
+    if request.user.is_staff:
         instance = get_object_or_404(Group, pk=group)
         if request.method == 'GET':
             return render(request, "app/client_mod.html", {'current': instance})
@@ -55,14 +60,16 @@ def clients_mod_group(request, group):
 
     return redirect('clients')
 
+@login_required
 def clients_del_group(request, group):
-    if request.user.is_superuser:
+    if request.user.is_staff:
         group = get_object_or_404(Group, pk=group)
         group.delete()
     return redirect('clients')
 
+@login_required
 def clients_add_user(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.is_staff:
         form = UserClientCreateForm(request.POST)
         if form.is_valid():
             new_user = User.objects.create_user(form.cleaned_data['username'], password=form.cleaned_data['password1'])
@@ -72,6 +79,7 @@ def clients_add_user(request):
 
     return redirect('clients')
 
+@login_required
 def clients_mod_user(request, user):
     if request.user.is_superuser:
         user = get_object_or_404(User, pk=user)
@@ -85,17 +93,20 @@ def clients_mod_user(request, user):
         user.save()
     return redirect('clients')
 
+@login_required
 def clients_del_user(request, user):
-    if request.user.is_superuser:
+    if request.user.is_staff:
         user = get_object_or_404(User, pk=user)
         user.delete()
     return redirect('clients')
 
 # PROJECTS
+@login_required
 def projects(request):  
     form = ProjectForm(user=request.user)
     return render(request, "app/projects.html", {'form': form})
 
+@login_required
 def projects_data(request):
     datatables = request.GET
     draw = int(datatables.get('draw'))
@@ -159,6 +170,7 @@ def projects_data(request):
         })
     return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
 
+@login_required
 def project_add(request):
     if request.method == 'POST':
         form = ProjectForm(request.POST)
@@ -167,12 +179,14 @@ def project_add(request):
 
     return redirect('projects')
 
+@login_required
 def project_del(request, project):
     project = Project.objects.get(id=project)
     if project:
         project.delete()
     return redirect('/projects/')
 
+@login_required
 def project_info(request, project):
     instance = get_object_or_404(Project, pk=project)
     if not request.user.groups.filter(name=instance.client).exists():
@@ -189,10 +203,12 @@ def project_info(request, project):
     }
     return render(request, 'app/project_info.html', context)
 
+@login_required
 def project_asset(request, project):
     instance = get_object_or_404(Project, id=project)
     return render(request, "app/project_asset.html", {'project': instance, 'form': AssetForm})
 
+@login_required
 def project_vuln(request, project):
     instance = get_object_or_404(Project, id=project)
     context = {
@@ -204,6 +220,7 @@ def project_vuln(request, project):
     return render(request, "app/project_vuln.html", context)
 
 # ASSETS
+@login_required
 def assets_data(request, project):
     datatables = request.GET
     draw = int(datatables.get('draw'))
@@ -265,6 +282,7 @@ def assets_data(request, project):
         })
     return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
 
+@login_required
 def asset_add(request, project):
     if request.method == 'POST':
         instance = get_object_or_404(Project, id=project)
@@ -280,6 +298,7 @@ def asset_add(request, project):
     
     return redirect('project_asset', project=project)
 
+@login_required
 def asset_mod(request, project, asset):
     instance = get_object_or_404(Asset, pk=asset)
     form = AssetForm(request.POST or None, instance=instance)
@@ -289,12 +308,14 @@ def asset_mod(request, project, asset):
     
     return render(request, "app/asset_mod.html", {'asset': instance, 'project': project, 'form': form})
 
+@login_required
 def asset_del(request, project, asset):
     instance = get_object_or_404(Asset, pk=asset)
     instance.delete()
     return redirect('project_asset', project=project)
 
 # VULNERABILITIES
+@login_required
 def vulns_data(request, project):    
     datatables = request.GET
     draw = int(datatables.get('draw'))
@@ -362,6 +383,7 @@ def vulns_data(request, project):
         })
     return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
 
+@login_required
 def vuln_add(request, project):
     if request.method == 'POST':
         if request.POST.get('addtype') == 'import':
@@ -402,9 +424,11 @@ def vuln_add(request, project):
 
     return redirect('project_vuln', project=project)
 
+@login_required
 def vuln_mod(request, project, vuln):
     return redirect('/project/{0}/'.format(project))
 
+@login_required
 def vuln_del(request, project, vuln):
     return redirect('/project/{0}/'.format(project))
 

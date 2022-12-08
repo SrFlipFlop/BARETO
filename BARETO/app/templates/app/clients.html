@@ -34,7 +34,7 @@
     </div>
 
     <div class="card-footer">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addClient">Add client</button>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addClient" {% if not user.is_superuser %}disabled{% endif %}>Add client</button>
     </div>
 </div>
 
@@ -59,7 +59,7 @@
 
 			<div class="modal-footer">
 				<button id="closeClearClient" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
-				<button type="submit" class="btn btn-primary">Create client</button>
+				<button type="submit" class="btn btn-primary" {% if not user.is_superuser %}disabled{% endif %}>Create client</button>
 			</div>
             </form>
 		</div>
@@ -95,7 +95,7 @@
     </div>
 
     <div class="card-footer">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addUser">Add user</button>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addUser" {% if not user.is_superuser %}disabled{% endif %}>Add user</button>
     </div>
 </div>
 
@@ -132,7 +132,7 @@
 
 			<div class="modal-footer">
 				<button id="closeClearUser" type="button" class="btn btn-danger" data-dismiss="modal">Clear</button>
-				<button type="submit" class="btn btn-primary">Create user</button>
+				<button type="submit" class="btn btn-primary" {% if not user.is_superuser %}disabled{% endif %}>Create user</button>
 			</div>
             </form>
 		</div>

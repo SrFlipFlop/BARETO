@@ -80,6 +80,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = '/'
+
+LOGOUT_REDIRECT_URL = '/'
+
+LOGIN_URL = 'login'
+
+LOGOUT_URL = 'logout'
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
