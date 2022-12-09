@@ -87,11 +87,7 @@ class Asset(models.Model):
     type = models.IntegerField(choices=ASSET_TYPE, default=1)
     notes = HTMLField(default='TBC')
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    vulnerabilities = models.ManyToManyField(Vulnerability, through='AssetVulnerability')
+    vulnerabilities = models.ManyToManyField(Vulnerability)
 
     def __str__(self):
         return self.name
-
-class AssetVulnerability(models.Model):
-    asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
-    vulnerability = models.ForeignKey(Vulnerability, on_delete=models.PROTECT)
