@@ -109,8 +109,12 @@ def clients_del_user(request, user):
 # PROJECTS
 @login_required
 def projects(request):  
-    form = ProjectForm(user=request.user)
-    return render(request, "app/projects.html", {'form': form})
+    context = {'form': ProjectForm(user=request.user)}
+    if 'error' in request.session:
+        context['error'] = request.session['error']
+        del request.session['error']
+    
+    return render(request, "app/projects.html", context)
 
 @login_required
 def projects_data(request):
@@ -182,6 +186,8 @@ def project_add(request):
         form = ProjectForm(request.POST)
         if form.is_valid():
             form.save()
+        else:
+            request.session['error'] = form.errors
 
     return redirect('projects')
 
@@ -393,50 +399,55 @@ def vulns_data(request, project):
 def vuln_add(request, project):
     if request.method == 'POST':
         if request.POST.get('addtype') == 'import':
-            template = get_object_or_404(Template, pk=request.POST.get('template')) 
-            #TODO: import better vuln not create same vuln for different assets!
+            template = get_object_or_404(Template, pk=request.POST.get('template'))
+            new_vuln = Vulnerability(
+                name=template.name,
+                risk=template.risk,
+                cvss=template.cvss,
+                status=template.status,
+                type=template.type,
+                description=template.description,
+                impact=template.impact,
+                recomendation=template.recomendation
+            )
+            new_vuln.save()
             for id in request.POST.getlist('assets'):
                 asset = get_object_or_404(Asset, pk=id)
-                asset.vulnerabilities.create(
-                    name=template.name,
-                    risk=template.risk,
-                    cvss=template.cvss,
-                    status=template.status,
-                    type=template.type,
-                    description=template.description,
-                    impact=template.impact,
-                    recomendation=template.recomendation,
-                )
+                asset.vulnerabilities.add(new_vuln)
                 asset.save()
+        
         else:
-            #TODO create vuln from scratch
             form = VulnerabilityForm(request.POST)
             if form.is_valid():
-                print(form.cleaned_data)
-                #{'name': 'Test', 'risk': '1', 'cvss': '1234', 'status': '1', 'type': '1', 'description': '<p>TBC</p>', 'impact': '<p>TBC</p>', 'recomendation': '<p>TBC</p>', 'assets': <QuerySet [<Asset: Test>]>}
-                for id in request.POST.getlist('assets'):                    
-                    asset = get_object_or_404(Asset, pk=id)               
-                    """asset.vulnerabilities.create(
-                        name=form.cleaned_data.name,
-                        risk=template.risk,
-                        cvss=template.cvss,
-                        status=template.status,
-                        type=template.type,
-                        description=template.description,
-                        impact=template.impact,
-                        recomendation=template.recomendation,
-                    )"""
+                assets = form.cleaned_data['assets']
+                del form.cleaned_data['assets']
+
+                new_vuln = Vulnerability(**form.cleaned_data)
+                new_vuln.save()
+                for asset in assets:   
+                    asset.vulnerabilities.add(new_vuln)
                     asset.save()
+            else:
+                print(f'[!] Form errors - {form.errors}')
 
     return redirect('project_vuln', project=project)
 
 @login_required
 def vuln_mod(request, project, vuln):
-    return redirect('/project/{0}/'.format(project))
+    project_instance = get_object_or_404(Project, id=project)
+    vuln_instance = get_object_or_404(Vulnerability, id=vuln)
+    context = {
+        'project': project_instance,
+        'vulnerability': vuln_instance,
+        'form': VulnerabilityForm(request.POST or None, instance=vuln_instance, project=project_instance),
+    }
+    return render(request, "app/vuln_mod.html", context)
 
 @login_required
 def vuln_del(request, project, vuln):
-    return redirect('/project/{0}/'.format(project))
+    vuln = get_object_or_404(Vulnerability, pk=vuln)
+    vuln.delete()
+    return redirect('project_vuln', project=project)
 
 # API
 class ProjectViewSet(viewsets.ModelViewSet):

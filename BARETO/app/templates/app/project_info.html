@@ -144,7 +144,6 @@
 <script>
 $(document).ready(function(){
     
-
     tinymce.init({
         selector: 'textarea',
         //plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
@@ -155,9 +154,12 @@ $(document).ready(function(){
     });
 
     //$('#startProject').datetimepicker({dateFormat: 'yy-mm-dd', timeFormat: 'H:m:ss', showSecond: true});
-    $('#startProject').datetimepicker();
+    //$('#startProject').datetimepicker();
 	//$('#finishProject').datetimepicker({dateFormat: 'yy-mm-dd', timeFormat: 'H:m:ss', showSecond: true});
-    $('#finishProject').datetimepicker();
+    //$('#finishProject').datetimepicker();
+
+    $('#startProject').datetimepicker({format: 'DD/MM/YYYY'});
+	$('#finishProject').datetimepicker({format: 'DD/MM/YYYY'});
 });
 </script>
 {% endblock %}

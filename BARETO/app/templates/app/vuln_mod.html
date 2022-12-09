@@ -1,0 +1,125 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Project - {{ project.name }}{% endblock %}
+
+{% block submenu %}
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_info' project.id %}" class="nav-link">Project details</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_asset' project.id %}" class="nav-link">Assets</a>
+</li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{% url 'project_vuln' project.id %}" class="nav-link">Vulnerabilities</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="modal fade" id="deleteVuln" tabindex="-1" role="dialog" aria-labelledby="deleteVulnLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+		<div class="modal-content">
+            <div class="modal-header">
+				<h5 class="modal-title" id="deleteVulnLabel">Delete vulnerability {{vulnerability.name}}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+            
+			<div class="modal-body">
+                <p>Are you sure to delete this vulnerability for {{project.name}}?</p>
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                <a class="btn btn-danger" href="{% url 'vuln_del' project=project.id vuln=vulnerability.id%}" role="button">Delete</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="card">
+    <form method="POST" action="{% url 'vuln_add' project=project.id%}">
+        <div class="card-body">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Name:</label>
+                        {{form.name}}
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Status:</label>
+                        {{form.status}}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Type:</label>
+                        {{form.type}}
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Risk:</label>
+                        {{form.risk}}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">CVSS:</label>
+                        {{form.cvss}}
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Assets:</label>
+                        {{form.assets}}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="recipient-name" class="col-form-label">Description:</label>
+                {{form.description}}
+            </div>
+            <div class="form-group">
+                <label for="recipient-name" class="col-form-label">Impact:</label>
+                {{form.impact}}
+            </div>
+            <div class="form-group">
+                <label for="recipient-name" class="col-form-label">Recommendation:</label>
+                {{form.recomendation}}
+            </div>
+        </div>
+
+        {% csrf_token %}
+        <input type="hidden" name="addtype" value="create">
+
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#modVuln">Save</button>        
+            <button type="button" class="btn btn-danger float-right" data-toggle="modal" data-target="#deleteVuln">Delete</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    tinymce.init({
+        selector: 'textarea',
+        //plugins: 'advcode linkchecker autolink lists checklist powerpaste table advtable tinymcespellchecker',
+        plugins: 'autolink lists table',
+        toolbar: 'undo redo | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | checklist |  table | code',
+        toolbar_mode: 'floating',
+    });
+});
+</script>
+{% endblock
+{% endblock %}
