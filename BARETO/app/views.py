@@ -108,7 +108,7 @@ def clients_del_user(request, user):
 
 # PROJECTS
 @login_required
-def projects(request):  
+def projects(request):
     context = {'form': ProjectForm(user=request.user)}
     if 'error' in request.session:
         context['error'] = request.session['error']
@@ -232,6 +232,25 @@ def project_vuln(request, project):
     return render(request, "app/project_vuln.html", context)
 
 # ASSETS
+@login_required
+def assets(request):
+    projects = Project.objects.filter(client__in=request.user.groups.all())
+    context = {'assets':[]}
+    for asset in Asset.objects.filter(project__in=projects):
+        context['assets'].append({
+            'name': asset.name,
+            'type': asset.get_type_display(),
+            'risk': asset.vulnerabilities.order_by('-risk').first().get_risk_display(),
+            'project': asset.project,
+            'vulnerabilities': asset.vulnerabilities.count(),
+        })
+    
+    if 'error' in request.session:
+        context['error'] = request.session['error']
+        del request.session['error']
+
+    return render(request, "app/assets.html", context)
+
 @login_required
 def assets_data(request, project):
     datatables = request.GET
