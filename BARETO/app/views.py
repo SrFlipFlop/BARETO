@@ -244,10 +244,6 @@ def assets(request):
             'project': asset.project,
             'vulnerabilities': asset.vulnerabilities.count(),
         })
-    
-    if 'error' in request.session:
-        context['error'] = request.session['error']
-        del request.session['error']
 
     return render(request, "app/assets.html", context)
 
@@ -347,7 +343,72 @@ def asset_del(request, project, asset):
 
 # VULNERABILITIES
 @login_required
-def vulns_data(request, project):    
+def vulns(request):
+    if 'draw' not in request.GET:
+        return render(request, "app/vulns.html", {'vulns': vulns})
+    
+    datatables = request.GET
+    draw = int(datatables.get('draw'))
+    start = int(datatables.get('start'))
+    length = int(datatables.get('length'))
+    search = datatables.get('search[value]')
+    order_col = datatables.get('order[0][column]')
+    order_type = datatables.get('order[0][dir]', 'asc')
+
+    projects = Project.objects.filter(client__in=request.user.groups.all())
+    #instance = get_object_or_404(Project, pk=project)
+    #if not request.user.groups.filter(name=instance.client).exists():
+    #    return JsonResponse({'draw': draw, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': []})
+
+    query = Q()
+    for project in projects:
+        for asset in project.asset_set.all():
+            query = query | Q(asset__pk=asset.pk)
+
+    #TODO: Group vulns by assets --> {'Vuln1': ['asset1','asset2']}
+    vulnerabilities = Vulnerability.objects.filter(query)
+    records_total = vulnerabilities.count()
+    records_filtered = vulnerabilities.count()
+
+    if search:
+        vulnerabilities = vulnerabilities.filter(
+                Q(name__icontains=search)|
+                Q(type__icontains=search)
+            )
+        records_total = vulnerabilities.count()
+        records_filtered = records_total
+
+    if order_col:
+        col_type = {'asc': '', 'desc': '-'}
+        #if order_col == '3':
+        #    assets = vulnerabilities.annotate(num_vulns=Count('vulnerabilities')).order_by('{}num_vulns'.format(col_type[order_type]))
+        #else:
+        #    col_relatons = {'0': 'name', '1': 'type', '3': 'risk', '4': 'vulnerabilities'}
+        #    assets = vulnerabilities.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
+
+    paginator = Paginator(vulnerabilities, length)
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
+
+    data = []
+    for vulnerability in object_list:
+        data.append({
+            'name': {'name': vulnerability.name, 'id': vulnerability.pk, 'project': vulnerability.asset_set.first().project.pk},
+            'risk': vulnerability.get_risk_display(),
+            'category': vulnerability.get_type_display(),
+            'status': vulnerability.get_status_display(),
+            'assets': '<br>'.join([asset.name for asset in vulnerability.asset_set.all()]),
+            'project': vulnerability.asset_set.first().project.name,
+            'client': vulnerability.asset_set.first().project.client.name,
+        })
+    return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
+
+@login_required
+def vulns_data(request, project):
     datatables = request.GET
     draw = int(datatables.get('draw'))
     start = int(datatables.get('start'))

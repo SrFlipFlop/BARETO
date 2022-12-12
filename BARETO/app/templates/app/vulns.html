@@ -1,0 +1,61 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Vulnerabilities{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <table id="vulnerabilities-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Risk</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th>Assets</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function(){
+	$('#vulnerabilities-table').DataTable({
+		"processing": true,
+		"serverSide": true,
+		"ajax": {
+			"url": "{% url 'vulns'%}",
+			"type": "GET"
+		},
+		"columns": [
+			{
+				"data": "name",
+				render: function(data, type, row, meta) {
+					return '<a href="/project/'+data.project+'/vulns/'+data.id+'/">'+data.name+'</a>';
+				}
+			},
+			{"data": "risk"},
+			{"data": "category"},
+			{"data": "status"},
+            {"data": "client"},
+            {"data": "project"},
+            {"data": "assets"}
+		]
+	});
+
+    $('.select2').select2()
+
+    $('#closeClearImportVuln').click(function() {
+		$('#importVunlerability').find("input,select").val('').end();;
+	});
+});
+</script>
+{% endblock %}
