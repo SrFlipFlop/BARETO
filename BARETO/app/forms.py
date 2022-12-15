@@ -68,6 +68,17 @@ class VulnerabilityForm(forms.ModelForm):
         if project:
             self.fields['assets'].queryset = project.asset_set.all()
 
+class TemplateForm(forms.ModelForm):
+    name = forms.CharField(max_length=250, widget=forms.TextInput(attrs={'class':'form-control'}))
+    risk = forms.ChoiceField(choices=VULNERABILITY_RISK, widget=forms.Select(attrs={'class':'custom-select'}))
+    cvss = forms.CharField(max_length=250, widget=forms.TextInput(attrs={'class':'form-control'}))
+    status = forms.ChoiceField(choices=VULNERABILITY_STATUS, widget=forms.Select(attrs={'class':'custom-select'}))
+    type = forms.ChoiceField(choices=VULNERABILITY_TYPE, widget=forms.Select(attrs={'class':'custom-select'}))
+
+    class Meta:
+        model = Template
+        fields = '__all__'
+
 class UserClientCreateForm(UserCreationForm):
     groups = forms.ModelMultipleChoiceField(
         required=False,

@@ -529,6 +529,78 @@ def vuln_del(request, project, vuln):
     vuln.delete()
     return redirect('project_vuln', project=project)
 
+# TEMPLATES
+@login_required
+def templates(request):
+    context = {'form': TemplateForm}
+    if 'error' in request.session:
+        context['error'] = request.session['error']
+        del request.session['error']
+    
+    return render(request, "app/templates.html", context)
+
+@login_required
+def templates_data(request):
+    datatables = request.GET
+    draw = int(datatables.get('draw'))
+    start = int(datatables.get('start'))
+    length = int(datatables.get('length'))
+    search = datatables.get('search[value]')
+    order_col = datatables.get('order[0][column]')
+    order_type = datatables.get('order[0][dir]', 'asc')
+
+    templates = Template.objects.all()
+    records_total = templates.count()
+    records_filtered = templates.count()
+
+    if search:
+        templates = templates.filter(
+                Q(name__icontains=search)|
+                Q(status__icontains=search)|
+                Q(start__icontains=search)|
+                Q(finished__icontains=search)
+            )
+        records_total = templates.count()
+        records_filtered = records_total
+
+    paginator = Paginator(templates, length)
+    try:
+        object_list = paginator.page(draw).object_list
+    except PageNotAnInteger:
+        object_list = paginator.page(draw).object_list
+    except EmptyPage:
+        object_list = paginator.page(paginator.num_pages).object_list
+
+    data = []
+    for template in object_list:        
+        data.append({
+            'name': {'name': template.name, 'id': template.pk},
+            'risk': template.get_risk_display(),
+            'category': template.get_type_display(),
+            'status': template.get_status_display(),
+        })
+    return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
+
+@login_required
+def templates_add(request):
+    if request.method == 'POST':
+        form = TemplateForm(request.POST)
+        if form.is_valid():
+            Template(**form.cleaned_data).save()
+        else:
+            print(f'[!] Form errors - {form.errors}')
+            request.session['error'] = form.errors
+
+    return redirect('templates')
+
+@login_required
+def templates_mod(request, template):
+    pass
+
+@login_required
+def templates_del(request, template):
+    pass
+
 # API
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
