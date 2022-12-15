@@ -514,15 +514,15 @@ def vuln_add(request, project):
 
 @login_required
 def vuln_mod(request, project, vuln):
-    #TODO: use mod and not add
     project_instance = get_object_or_404(Project, id=project)
     vuln_instance = get_object_or_404(Vulnerability, id=vuln)
-    context = {
-        'project': project_instance,
-        'vulnerability': vuln_instance,
-        'form': VulnerabilityForm(request.POST or None, instance=vuln_instance, project=project_instance),
-    }
-    return render(request, "app/vuln_mod.html", context)
+    form = VulnerabilityForm(request.POST or None, instance=vuln_instance, project=project_instance)
+    
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('project_vuln', project=project)
+
+    return render(request, "app/vuln_mod.html", {'project': project_instance, 'vulnerability': vuln_instance, 'form': form})
 
 @login_required
 def vuln_del(request, project, vuln):

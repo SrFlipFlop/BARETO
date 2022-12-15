@@ -38,9 +38,8 @@
 </div>
 
 <div class="card">
-    <form method="POST" action="{% url 'vuln_add' project=project.id%}">
+    <form method="POST" action="{% url 'vuln_mod' project=project.id vuln=vulnerability.id%}">
         <div class="card-body">
-            {% csrf_token %}
             <div class="row">
                 <div class="col-sm-6">
                     <div class="form-group">
@@ -121,5 +120,4 @@ $(document).ready(function() {
     });
 });
 </script>
-{% endblock
 {% endblock %}
