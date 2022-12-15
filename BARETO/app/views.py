@@ -514,6 +514,7 @@ def vuln_add(request, project):
 
 @login_required
 def vuln_mod(request, project, vuln):
+    #TODO: use mod and not add
     project_instance = get_object_or_404(Project, id=project)
     vuln_instance = get_object_or_404(Vulnerability, id=vuln)
     context = {
@@ -577,7 +578,7 @@ def templates_data(request):
             'name': {'name': template.name, 'id': template.pk},
             'risk': template.get_risk_display(),
             'category': template.get_type_display(),
-            'status': template.get_status_display(),
+            'cvss': template.cvss,
         })
     return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
 
@@ -595,11 +596,18 @@ def templates_add(request):
 
 @login_required
 def templates_mod(request, template):
-    pass
+    instance = get_object_or_404(Template, pk=template)
+    form = TemplateForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+    
+    return render(request, 'app/template_mod.html', {'template': instance, 'form': form})
 
 @login_required
 def templates_del(request, template):
-    pass
+    instance = get_object_or_404(Template, pk=template)
+    instance.delete()
+    return redirect('templates')
 
 # API
 class ProjectViewSet(viewsets.ModelViewSet):
