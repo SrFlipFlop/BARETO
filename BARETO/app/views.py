@@ -627,5 +627,15 @@ class AssetViewSet(viewsets.ModelViewSet):
         return Asset.objects.filter(project__in=projects)
 
 class VulnerabilityViewSet(viewsets.ModelViewSet):
-    queryset = Vulnerability.objects.all()
     serializer_class = VulnerabilitySerializer
+
+    def get_queryset(self):
+        groups = self.request.user.groups.all()
+        projects = Project.objects.filter(client__in=groups)
+        assets =  Asset.objects.filter(project__in=projects)
+        
+        query = Q()
+        for asset in assets.all():
+            query = query | Q(asset__pk=asset.pk)
+
+        return Vulnerability.objects.filter(query)

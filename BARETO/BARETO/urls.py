@@ -7,7 +7,7 @@ from app.views import ProjectViewSet, AssetViewSet, VulnerabilityViewSet
 router = routers.DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='Project')
 router.register(r'assets', AssetViewSet, basename='Asset')
-router.register(r'vulnerabilities', VulnerabilityViewSet)
+router.register(r'vulnerabilities', VulnerabilityViewSet, basename='Vulnerability')
 
 urlpatterns = [    
     path('api/', include(router.urls)),
