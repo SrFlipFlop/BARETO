@@ -5,6 +5,7 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
+from rest_framework.response import Response
 
 from app.models import *
 from app.serializers import *
@@ -611,12 +612,19 @@ def templates_del(request, template):
 
 # API
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
+    def get_queryset(self):
+        groups = self.request.user.groups.all()
+        return Project.objects.filter(client__in=groups)
+
 class AssetViewSet(viewsets.ModelViewSet):
-    queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+
+    def get_queryset(self):
+        groups = self.request.user.groups.all()
+        projects = Project.objects.filter(client__in=groups)
+        return Asset.objects.filter(project__in=projects)
 
 class VulnerabilityViewSet(viewsets.ModelViewSet):
     queryset = Vulnerability.objects.all()

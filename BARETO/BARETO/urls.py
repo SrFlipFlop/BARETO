@@ -5,8 +5,8 @@ from rest_framework import routers
 from app.views import ProjectViewSet, AssetViewSet, VulnerabilityViewSet
 
 router = routers.DefaultRouter()
-router.register(r'projects', ProjectViewSet)
-router.register(r'assets', AssetViewSet)
+router.register(r'projects', ProjectViewSet, basename='Project')
+router.register(r'assets', AssetViewSet, basename='Asset')
 router.register(r'vulnerabilities', VulnerabilityViewSet)
 
 urlpatterns = [    
