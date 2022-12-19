@@ -1,11 +1,10 @@
 from rest_framework import viewsets
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
-from rest_framework.response import Response
 
 from app.models import *
 from app.serializers import *
@@ -13,7 +12,7 @@ from app.forms import *
 
 @login_required
 def index(request):
-    return render(request, "app/dashboard.html", {})
+    return render(request, 'app/dashboard.html', {})
 
 def max_risk(vulns):
     risks = ('Informative', 'Low', 'Medium', 'High', 'Critical')
@@ -43,7 +42,7 @@ def clients(request):
         context['error'] = request.session['error']
         del request.session['error']
 
-    return render(request, "app/clients.html", context)
+    return render(request, 'app/clients.html', context)
 
 @login_required
 def clients_add_group(request):
@@ -56,7 +55,7 @@ def clients_mod_group(request, group):
     if request.user.is_staff:
         instance = get_object_or_404(Group, pk=group)
         if request.method == 'GET':
-            return render(request, "app/client_mod.html", {'current': instance})
+            return render(request, 'app/client_mod.html', {'current': instance})
         else:
             new_name = request.POST.get('clientName')
             if not Group.objects.filter(name=new_name):
@@ -92,7 +91,7 @@ def clients_mod_user(request, user):
         user = get_object_or_404(User, pk=user)
         form = UserClientUpdateForm(request.POST or None, instance=user)
         if not form.is_valid():
-            return render(request, "app/user_mod.html", {'current': user, 'form': form})
+            return render(request, 'app/user_mod.html', {'current': user, 'form': form})
         
         user = form.save()
         for group in form.cleaned_data.get('groups'):
@@ -115,7 +114,7 @@ def projects(request):
         context['error'] = request.session['error']
         del request.session['error']
     
-    return render(request, "app/projects.html", context)
+    return render(request, 'app/projects.html', context)
 
 @login_required
 def projects_data(request):
@@ -141,14 +140,6 @@ def projects_data(request):
         records_total = projects.count()
         records_filtered = records_total
 
-    #if order_col:
-    #    col_type = {'asc': '', 'desc': '-'}
-    #    if order_col == '2':
-    #        projects = projects.annotate(num_assets=Count('asset')).order_by('{}num_assets'.format(col_type[order_type]))
-    #    else:
-    #        col_relatons = {'0': 'name', '1': 'program_name', '3': 'state', '4': 'offers_bounties', '5': 'max_ammount'}
-    #        projects = projects.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
-
     paginator = Paginator(projects, length)
     try:
         object_list = paginator.page(draw).object_list
@@ -157,27 +148,19 @@ def projects_data(request):
     except EmptyPage:
         object_list = paginator.page(paginator.num_pages).object_list
 
-    """data = [
-        {
-            'name': {'name': projects.name, 'id': projects.pk},
-            'status': projects.status,
-            'client': projects.client.name,
-            'risk': 'Informative',
-            'assets': projects.asset_set.count(),
-            'issues': 0,
-        } for projects in object_list
-    ]"""
     data = []
-    for projects in object_list:
-        #TODO: serach issues and risk adn changestatus
-        
+    for project in object_list:
+        risk = project.asset_set.aggregate(max=Max('vulnerabilities__risk'))
+        asset = project.asset_set.filter(vulnerabilities__risk=risk['max']).first()
+        first = asset.vulnerabilities.order_by('-risk').first() if asset else None
+        print(project, risk, asset, first)
         data.append({
-            'name': {'name': projects.name, 'id': projects.pk},
-            'status': projects.get_status_display(),
-            'client': projects.client.name,
-            'risk': 'Informative',
-            'assets': projects.asset_set.count(),
-            'issues': 0,
+            'name': {'name': project.name, 'id': project.pk},
+            'status': project.get_status_display(),
+            'client': project.client.name,
+            'risk': first.get_risk_display() if first else 'N/A',
+            'assets': project.asset_set.count(),
+            'issues': project.asset_set.aggregate(vulns=Count('vulnerabilities')).get('vulns', 0),
         })
     return JsonResponse({'draw': draw, 'recordsTotal': records_total, 'recordsFiltered': records_filtered, 'data': data})
 
@@ -219,7 +202,7 @@ def project_info(request, project):
 @login_required
 def project_asset(request, project):
     instance = get_object_or_404(Project, id=project)
-    return render(request, "app/project_asset.html", {'project': instance, 'form': AssetForm})
+    return render(request, 'app/project_asset.html', {'project': instance, 'form': AssetForm})
 
 @login_required
 def project_vuln(request, project):
@@ -230,7 +213,7 @@ def project_vuln(request, project):
         'templates': Template.objects.all(),
         'form': VulnerabilityForm(project=instance),
     }
-    return render(request, "app/project_vuln.html", context)
+    return render(request, 'app/project_vuln.html', context)
 
 # ASSETS
 @login_required
@@ -238,15 +221,17 @@ def assets(request):
     projects = Project.objects.filter(client__in=request.user.groups.all())
     context = {'assets':[]}
     for asset in Asset.objects.filter(project__in=projects):
+        first = asset.vulnerabilities.order_by('-risk').first()
         context['assets'].append({
             'name': asset.name,
             'type': asset.get_type_display(),
-            'risk': asset.vulnerabilities.order_by('-risk').first().get_risk_display(),
+            'risk': first.get_risk_display() if first else 'N/A',
             'project': asset.project,
             'vulnerabilities': asset.vulnerabilities.count(),
         })
+        print(context)
 
-    return render(request, "app/assets.html", context)
+    return render(request, 'app/assets.html', context)
 
 @login_required
 def assets_data(request, project):
@@ -290,16 +275,6 @@ def assets_data(request, project):
     except EmptyPage:
         object_list = paginator.page(paginator.num_pages).object_list
 
-    """data = [
-        {
-            'name': {'name': projects.name, 'id': projects.pk},
-            'status': projects.status,
-            'client': projects.client.name,
-            'risk': 'Informative',
-            'assets': projects.asset_set.count(),
-            'issues': 0,
-        } for projects in object_list
-    ]"""
     data = []
     for asset in object_list:        
         data.append({
@@ -334,7 +309,7 @@ def asset_mod(request, project, asset):
         form.save()
         return redirect('project_asset', project=project)
     
-    return render(request, "app/asset_mod.html", {'asset': instance, 'project': project, 'form': form})
+    return render(request, 'app/asset_mod.html', {'asset': instance, 'project': project, 'form': form})
 
 @login_required
 def asset_del(request, project, asset):
@@ -346,7 +321,7 @@ def asset_del(request, project, asset):
 @login_required
 def vulns(request):
     if 'draw' not in request.GET:
-        return render(request, "app/vulns.html", {'vulns': vulns})
+        return render(request, 'app/vulns.html', {'vulns': vulns})
     
     datatables = request.GET
     draw = int(datatables.get('draw'))
@@ -357,16 +332,12 @@ def vulns(request):
     order_type = datatables.get('order[0][dir]', 'asc')
 
     projects = Project.objects.filter(client__in=request.user.groups.all())
-    #instance = get_object_or_404(Project, pk=project)
-    #if not request.user.groups.filter(name=instance.client).exists():
-    #    return JsonResponse({'draw': draw, 'recordsTotal': 0, 'recordsFiltered': 0, 'data': []})
 
     query = Q()
     for project in projects:
         for asset in project.asset_set.all():
             query = query | Q(asset__pk=asset.pk)
 
-    #TODO: Group vulns by assets --> {'Vuln1': ['asset1','asset2']}
     vulnerabilities = Vulnerability.objects.filter(query)
     records_total = vulnerabilities.count()
     records_filtered = vulnerabilities.count()
@@ -381,12 +352,7 @@ def vulns(request):
 
     if order_col:
         col_type = {'asc': '', 'desc': '-'}
-        #if order_col == '3':
-        #    assets = vulnerabilities.annotate(num_vulns=Count('vulnerabilities')).order_by('{}num_vulns'.format(col_type[order_type]))
-        #else:
-        #    col_relatons = {'0': 'name', '1': 'type', '3': 'risk', '4': 'vulnerabilities'}
-        #    assets = vulnerabilities.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
-
+        
     paginator = Paginator(vulnerabilities, length)
     try:
         object_list = paginator.page(draw).object_list
@@ -426,7 +392,6 @@ def vulns_data(request, project):
     for asset in instance.asset_set.all():
         query = query | Q(asset__pk=asset.pk)
 
-    #TODO: Group vulns by assets --> {'Vuln1': ['asset1','asset2']}
     vulnerabilities = Vulnerability.objects.filter(query)
     records_total = vulnerabilities.count()
     records_filtered = vulnerabilities.count()
@@ -441,11 +406,6 @@ def vulns_data(request, project):
 
     if order_col:
         col_type = {'asc': '', 'desc': '-'}
-        #if order_col == '3':
-        #    assets = vulnerabilities.annotate(num_vulns=Count('vulnerabilities')).order_by('{}num_vulns'.format(col_type[order_type]))
-        #else:
-        #    col_relatons = {'0': 'name', '1': 'type', '3': 'risk', '4': 'vulnerabilities'}
-        #    assets = vulnerabilities.order_by('{}{}'.format(col_type[order_type], col_relatons[order_col]))
 
     paginator = Paginator(vulnerabilities, length)
     try:
@@ -455,16 +415,6 @@ def vulns_data(request, project):
     except EmptyPage:
         object_list = paginator.page(paginator.num_pages).object_list
 
-    """data = [
-        {
-            'name': {'name': projects.name, 'id': projects.pk},
-            'status': projects.status,
-            'client': projects.client.name,
-            'risk': 'Informative',
-            'assets': projects.asset_set.count(),
-            'issues': 0,
-        } for projects in object_list
-    ]"""
     data = []
     for vulnerability in object_list:        
         data.append({
@@ -523,7 +473,7 @@ def vuln_mod(request, project, vuln):
         form.save()
         return redirect('project_vuln', project=project)
 
-    return render(request, "app/vuln_mod.html", {'project': project_instance, 'vulnerability': vuln_instance, 'form': form})
+    return render(request, 'app/vuln_mod.html', {'project': project_instance, 'vulnerability': vuln_instance, 'form': form})
 
 @login_required
 def vuln_del(request, project, vuln):
@@ -539,7 +489,7 @@ def templates(request):
         context['error'] = request.session['error']
         del request.session['error']
     
-    return render(request, "app/templates.html", context)
+    return render(request, 'app/templates.html', context)
 
 @login_required
 def templates_data(request):

@@ -17,11 +17,13 @@
             </thead>
             <tbody>
                 {% for asset in assets %}
-                <td>{{asset.name}}</td>
-                <td>{{asset.type}}</td>
-                <td>{{asset.risk}}</td>
-                <td><a href="{% url 'project_info' project=asset.project.id %}">{{asset.project.name}}</a></td>
-                <td>{{asset.vulnerabilities}}</td>
+                <tr>
+                    <td>{{asset.name}}</td>
+                    <td>{{asset.type}}</td>
+                    <td>{{asset.risk}}</td>
+                    <td><a href="{% url 'project_info' project=asset.project.id %}">{{asset.project.name}}</a></td>
+                    <td>{{asset.vulnerabilities}}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
