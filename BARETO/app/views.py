@@ -639,3 +639,7 @@ class VulnerabilityViewSet(viewsets.ModelViewSet):
             query = query | Q(asset__pk=asset.pk)
 
         return Vulnerability.objects.filter(query)
+
+class TemplateViewSet(viewsets.ModelViewSet):
+    queryset = Template.objects.all()
+    serializer_class = VulnerabilitySerializer
